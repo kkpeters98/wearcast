@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WearCast</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+        h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+        .subtitle { color: #888; font-size: 14px; margin-bottom: 32px; }
+        label { font-size: 13px; font-weight: 500; color: #444; display: block; margin-bottom: 6px; }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            margin-bottom: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus { border-color: #6c63ff; }
+        .toggle-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .toggle-btn.active {
+            border-color: #6c63ff;
+            background: #f0eeff;
+            color: #6c63ff;
+            font-weight: 500;
+        }
+        button[type="submit"] {
+            width: 100%;
+            padding: 14px;
+            background: #6c63ff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button[type="submit"]:hover { background: #5a52d5; }
+        .result {
+            margin-top: 28px;
+            padding: 20px;
+            background: #f8f7ff;
+            border-radius: 12px;
+            border-left: 4px solid #6c63ff;
+        }
+        .weather-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            color: #666;
+        }
+        .weather-pill {
+            background: #eee;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .outfit-text { font-size: 15px; line-height: 1.7; color: #333; }
+        .loading { text-align: center; color: #888; font-size: 14px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🌤️ WearCast</h1>
+        <p class="subtitle">AI outfit recommendations based on your weather</p>
+
+        <form id="weatherForm">
+            <label>Your location (city or zip code)</label>
+            <input type="text" id="location" placeholder="e.g. Denver, CO" required />
+
+            <label>Temperature preference</label>
+            <div class="toggle-group">
+                <button type="button" class="toggle-btn active" id="btn-warm" onclick="setTemp('warm')">I run warm 🥵</button>
+                <button type="button" class="toggle-btn" id="btn-cold" onclick="setTemp('cold')">I run cold 🥶</button>
+            </div>
+
+            <button type="submit">Get my outfit ✨</button>
+        </form>
+
+        <div id="result" style="display:none"></div>
+        <div id="loading" class="loading" style="display:none">Getting your outfit recommendation... ✨</div>
+    </div>
+
+    <script>
+        let runsCold = false;
+
+        function setTemp(pref) {
+            runsCold = pref === 'cold';
+            document.getElementById('btn-warm').classList.toggle('active', !runsCold);
+            document.getElementById('btn-cold').classList.toggle('active', runsCold);
+        }
+
+        document.getElementById('weatherForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const location = document.getElementById('location').value;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+
+            const response = await fetch('/recommend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ location, runs_cold: runsCold })
+            });
+
+            const data = await response.json();
+            document.getElementById('loading').style.display = 'none';
+
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('result').innerHTML = `
+                <div class="weather-bar">
+                    <span class="weather-pill">🌡️ ${data.weather.temperature}°F</span>
+                    <span class="weather-pill">💨 ${data.weather.windspeed} mph</span>
+                </div>
+                <div class="outfit-text">${data.outfit}</div>
+            `;
+        });
+    </script>
+</body>
+</html>
