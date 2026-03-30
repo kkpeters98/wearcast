@@ -2,6 +2,10 @@
 
 An AI-powered outfit recommendation app that combines real-time weather data with Claude AI to tell you exactly what to wear today.
 
+## Live Demo
+
+👉 [Try WearCast live](https://wearcast-production.up.railway.app/)
+
 ## What it does
 
 Enter any city, tell WearCast whether you run warm or cold, and it will fetch live weather conditions, use Claude AI to generate a personalized outfit recommendation, and log everything to a database modeled with dbt.
@@ -16,38 +20,50 @@ Enter any city, tell WearCast whether you run warm or cold, and it will fetch li
 
 ## dbt Models
 
-| Model | Description |
-|-------|-------------|
-| `stg_recommendations` | Cleans raw logs, adds human-readable weather descriptions |
-| `mart_city_stats` | Aggregates by city — total searches, avg temp, warm vs cold split |
+
+| Model                 | Description                                                       |
+| --------------------- | ----------------------------------------------------------------- |
+| `stg_recommendations` | Cleans raw logs, adds human-readable weather descriptions         |
+| `mart_city_stats`     | Aggregates by city — total searches, avg temp, warm vs cold split |
+
 
 ## Setup
 
 Clone the repo and create a virtual environment:
 
-    git clone https://github.com/kkpeters98/wearcast.git
-    cd wearcast
-    python3 -m venv venv
-    source venv/bin/activate
+```
+git clone https://github.com/kkpeters98/wearcast.git
+cd wearcast
+python3 -m venv venv
+source venv/bin/activate
+```
 
 Install dependencies:
 
-    pip install -r requirements.txt
+```
+pip install -r requirements.txt
+```
 
 Create a `.env` file with your Anthropic API key:
 
-    ANTHROPIC_API_KEY=your_key_here
+```
+ANTHROPIC_API_KEY=your_key_here
+```
 
 Run the app:
 
-    python3 app.py
+```
+python3 app.py
+```
 
 Open `http://localhost:5000` in your browser.
 
 To run the dbt models:
 
-    cd wearcast_dbt
-    dbt run
+```
+cd wearcast_dbt
+dbt run
+```
 
 ## Why I built this
 
