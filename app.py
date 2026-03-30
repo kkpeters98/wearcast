@@ -1,3 +1,4 @@
+import duckdb
 import requests
 import anthropic
 import os
@@ -7,6 +8,26 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+
+def log_recommendation(location, temperature, windspeed, weathercode, runs_cold, outfit):
+    con = duckdb.connect("wearcast.duckdb")
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS recommendations (
+            id INTEGER PRIMARY KEY,
+            location VARCHAR,
+            temperature FLOAT,
+            windspeed FLOAT,
+            weathercode INTEGER,
+            runs_cold BOOLEAN,
+            outfit TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    con.execute("""
+        INSERT INTO recommendations (location, temperature, windspeed, weathercode, runs_cold, outfit)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, [location, temperature, windspeed, weathercode, runs_cold, outfit])
+    con.close()
 
 def get_coordinates(location):
     url = "https://nominatim.openstreetmap.org/search"
@@ -72,8 +93,11 @@ def recommend():
 
     weather = get_weather(lat, lon)
     outfit = get_outfit(weather, runs_cold)
+    
+    log_recommendation(location, weather["temperature"], weather["windspeed"], weather["weathercode"], runs_cold, outfit)
 
     return jsonify({"weather": weather, "outfit": outfit})
 
+    
 if __name__ == "__main__":
     app.run(debug=True)
