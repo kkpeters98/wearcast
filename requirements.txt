@@ -7,3 +7,4 @@ python-dotenv
 duckdb
 numpy
 pandas
+gunicorn
