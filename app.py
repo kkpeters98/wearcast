@@ -3,7 +3,7 @@ import os
 import re
 import threading
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import anthropic
 import duckdb
@@ -85,20 +85,38 @@ def get_coordinates(location):
     return lat, lon
 
 
-def get_weather(lat, lon, forecast_date=None):
+def get_weather(lat, lon, forecast_date=None, forecast_hour=None):
     url = "https://api.open-meteo.com/v1/forecast"
     today = datetime.now().strftime("%Y-%m-%d")
+    target_date = forecast_date if forecast_date else today
 
-    if forecast_date and forecast_date != today:
+    if forecast_hour is not None:
         params = {
-            "latitude": lat,
-            "longitude": lon,
+            "latitude": lat, "longitude": lon,
+            "hourly": ["temperature_2m", "weathercode", "windspeed_10m"],
+            "temperature_unit": "fahrenheit", "windspeed_unit": "mph",
+            "timezone": "auto", "start_date": target_date, "end_date": target_date,
+        }
+        response = requests.get(url, params=params, timeout=HTTP_TIMEOUT)
+        response.raise_for_status()
+        data = response.json()
+        hourly = data["hourly"]
+        idx = forecast_hour
+        return {
+            "temperature": hourly["temperature_2m"][idx],
+            "windspeed": hourly["windspeed_10m"][idx],
+            "weathercode": hourly["weathercode"][idx],
+            "timezone": data.get("timezone", "UTC"),
+            "is_forecast": True,
+            "forecast_date": target_date,
+            "forecast_hour": forecast_hour,
+        }
+    elif forecast_date and forecast_date != today:
+        params = {
+            "latitude": lat, "longitude": lon,
             "daily": ["temperature_2m_max", "temperature_2m_min", "weathercode", "windspeed_10m_max"],
-            "temperature_unit": "fahrenheit",
-            "windspeed_unit": "mph",
-            "timezone": "auto",
-            "start_date": forecast_date,
-            "end_date": forecast_date,
+            "temperature_unit": "fahrenheit", "windspeed_unit": "mph",
+            "timezone": "auto", "start_date": forecast_date, "end_date": forecast_date,
         }
         response = requests.get(url, params=params, timeout=HTTP_TIMEOUT)
         response.raise_for_status()
@@ -114,16 +132,14 @@ def get_weather(lat, lon, forecast_date=None):
             "timezone": data.get("timezone", "UTC"),
             "is_forecast": True,
             "forecast_date": forecast_date,
+            "forecast_hour": None,
         }
     else:
         params = {
-            "latitude": lat,
-            "longitude": lon,
+            "latitude": lat, "longitude": lon,
             "current": ["temperature_2m", "weathercode", "windspeed_10m"],
-            "temperature_unit": "fahrenheit",
-            "windspeed_unit": "mph",
-            "timezone": "auto",
-            "forecast_days": 1,
+            "temperature_unit": "fahrenheit", "windspeed_unit": "mph",
+            "timezone": "auto", "forecast_days": 1,
         }
         response = requests.get(url, params=params, timeout=HTTP_TIMEOUT)
         response.raise_for_status()
@@ -135,7 +151,34 @@ def get_weather(lat, lon, forecast_date=None):
             "weathercode": current["weathercode"],
             "timezone": data.get("timezone", "UTC"),
             "is_forecast": False,
+            "forecast_date": None,
+            "forecast_hour": None,
         }
+
+
+def get_trip_weather(lat, lon, start_date, end_date):
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": lat, "longitude": lon,
+        "daily": ["temperature_2m_max", "temperature_2m_min", "weathercode", "windspeed_10m_max", "precipitation_sum"],
+        "temperature_unit": "fahrenheit", "windspeed_unit": "mph",
+        "timezone": "auto", "start_date": start_date, "end_date": end_date,
+    }
+    response = requests.get(url, params=params, timeout=HTTP_TIMEOUT)
+    response.raise_for_status()
+    data = response.json()
+    daily = data["daily"]
+    days = []
+    for i in range(len(daily["time"])):
+        days.append({
+            "date": daily["time"][i],
+            "temp_max": daily["temperature_2m_max"][i],
+            "temp_min": daily["temperature_2m_min"][i],
+            "weathercode": daily["weathercode"][i],
+            "windspeed": daily["windspeed_10m_max"][i],
+            "precipitation": daily["precipitation_sum"][i],
+        })
+    return days, data.get("timezone", "UTC")
 
 
 def get_outfit(weather, runs_cold=False, gender="woman"):
@@ -147,7 +190,7 @@ def get_outfit(weather, runs_cold=False, gender="woman"):
 
 Current weather:
 - Temperature: {temp}°F
-- Wind speed: {weather['windspeed']} mph  
+- Wind speed: {weather['windspeed']} mph
 - Sky: {weather['weathercode']} (0=sunny, 1-2=mostly clear, 3=overcast, 61-67=rain, 71-77=snow)
 
 Guidelines:
@@ -165,12 +208,12 @@ Guidelines:
 
 Return ONLY a raw JSON object, no markdown:
 {{"top": "garment type guidance", "bottoms": "garment type guidance", "shoes": "footwear guidance", "accessories": "practical accessories or none needed"}}"""
+
     message = client.messages.create(
         model=_outfit_model,
         max_tokens=300,
         messages=[{"role": "user", "content": prompt}],
     )
-    import json
     text = message.content[0].text.strip()
     match = re.search(r'\{.*\}', text, re.DOTALL)
     if match:
@@ -179,6 +222,61 @@ Return ONLY a raw JSON object, no markdown:
         return json.loads(text)
     except Exception:
         return {"top": text, "bottoms": "", "shoes": "", "accessories": ""}
+
+
+def get_packing_list(destination, days, runs_cold, gender, trip_duration):
+    client = _get_anthropic()
+    preference = "runs cold" if runs_cold else "runs warm"
+
+    weather_summary = []
+    for d in days:
+        code = d['weathercode'] or 0
+        if 61 <= code <= 67:
+            cond = "rain"
+        elif 71 <= code <= 77:
+            cond = "snow"
+        elif code <= 2:
+            cond = "clear"
+        else:
+            cond = "overcast"
+        weather_summary.append(
+            f"- {d['date']}: {d['temp_min']}-{d['temp_max']}F, {cond}, wind {d['windspeed']} mph"
+        )
+
+    prompt = f"""You are a smart travel packing assistant. Create a practical packing list for a {gender} who {preference} traveling to {destination} for {trip_duration} days.
+
+Weather forecast for the trip:
+{chr(10).join(weather_summary)}
+
+Create a packing list that is:
+- Practical and specific to this exact weather
+- Optimized for the trip length (don't over-pack)
+- Organized by category
+- Focused on clothing and weather-related items only (no toiletries, documents, etc.)
+
+Return ONLY a raw JSON object, no markdown:
+{{
+  "tops": ["item 1", "item 2"],
+  "bottoms": ["item 1", "item 2"],
+  "shoes": ["item 1"],
+  "layers": ["item 1"],
+  "accessories": ["item 1"],
+  "weather_notes": "one sentence about key weather pattern to know"
+}}"""
+
+    message = client.messages.create(
+        model=_outfit_model,
+        max_tokens=500,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    text = message.content[0].text.strip()
+    match = re.search(r'\{.*\}', text, re.DOTALL)
+    if match:
+        text = match.group(0)
+    try:
+        return json.loads(text)
+    except Exception:
+        return {"tops": [], "bottoms": [], "shoes": [], "layers": [], "accessories": [], "weather_notes": ""}
 
 
 @app.route("/")
@@ -210,13 +308,14 @@ def recommend():
     runs_cold = data.get("runs_cold", True)
     gender = data.get("gender", "woman")
     forecast_date = data.get("forecast_date", None)
+    forecast_hour = data.get("forecast_hour", None)
 
     lat, lon = get_coordinates(location)
     if lat is None:
         return jsonify({"error": "Location not found"}), 400
 
     try:
-        weather = get_weather(lat, lon, forecast_date)
+        weather = get_weather(lat, lon, forecast_date, forecast_hour)
     except (requests.RequestException, KeyError):
         return jsonify({"error": "Weather service unavailable"}), 502
 
@@ -230,6 +329,51 @@ def recommend():
     ).start()
 
     return jsonify({"weather": weather, "outfit": outfit})
+
+
+@app.route("/pack", methods=["POST"])
+def pack():
+    data = request.json
+    destination = data.get("destination")
+    start_date = data.get("start_date")
+    end_date = data.get("end_date")
+    runs_cold = data.get("runs_cold", True)
+    gender = data.get("gender", "woman")
+
+    if not destination or not start_date or not end_date:
+        return jsonify({"error": "Please fill in all fields"}), 400
+
+    lat, lon = get_coordinates(destination)
+    if lat is None:
+        return jsonify({"error": "Destination not found"}), 400
+
+    try:
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+        trip_duration = (end - start).days + 1
+        if trip_duration < 1:
+            return jsonify({"error": "End date must be after start date"}), 400
+        if trip_duration > 16:
+            return jsonify({"error": "Trip must be 16 days or less"}), 400
+    except ValueError:
+        return jsonify({"error": "Invalid dates"}), 400
+
+    try:
+        days, timezone = get_trip_weather(lat, lon, start_date, end_date)
+    except Exception:
+        return jsonify({"error": "Weather service unavailable"}), 502
+
+    packing_list = get_packing_list(destination, days, runs_cold, gender, trip_duration)
+
+    return jsonify({
+        "destination": destination,
+        "start_date": start_date,
+        "end_date": end_date,
+        "trip_duration": trip_duration,
+        "days": days,
+        "packing_list": packing_list,
+        "timezone": timezone,
+    })
 
 
 if __name__ == "__main__":

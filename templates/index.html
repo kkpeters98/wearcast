@@ -6,289 +6,235 @@
     <title>FitForecast</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #e8f4f0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .app {
-            width: 100%;
-            max-width: 420px;
-            height: 100vh;
-            max-height: 900px;
-            position: relative;
-            overflow: hidden;
-            background: #faf8f4;
-        }
-
-        .screen {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            transition: opacity 0.45s ease, transform 0.45s ease;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #e8f4f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .app { width: 100%; max-width: 420px; height: 100vh; max-height: 900px; position: relative; overflow: hidden; background: #faf8f4; }
+        .screen { position: absolute; inset: 0; display: flex; flex-direction: column; transition: opacity 0.45s ease, transform 0.45s ease; }
         .screen.hidden { opacity: 0; pointer-events: none; transform: scale(0.97); }
         .screen.active { opacity: 1; pointer-events: all; transform: scale(1); }
-
-        /* BLOBS */
-        .blob {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(32px);
-            pointer-events: none;
-            z-index: 0;
-        }
-        @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(14px,-20px)} }
-        @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-12px,16px)} }
-        @keyframes drift3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(18px,12px)} }
-        @keyframes drift4 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-8px,-14px)} }
+        .blob { position: absolute; border-radius: 50%; filter: blur(40px); pointer-events: none; z-index: 0; }
+        @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(18px,-24px)} }
+        @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-16px,20px)} }
+        @keyframes drift3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(22px,16px)} }
+        @keyframes drift4 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-10px,-18px)} }
 
         /* LANDING */
-        #screen-land {
-            background: #e8f4f0;
-            justify-content: flex-end;
-            padding: 48px 36px;
-            overflow: hidden;
-        }
-        #screen-land .b1 { width: 220px; height: 220px; background: #a8d4f5; top: -60px; left: -50px; animation: drift1 7s ease-in-out infinite; }
-        #screen-land .b2 { width: 160px; height: 160px; background: #f5e890; top: 40px; right: -40px; animation: drift2 8s ease-in-out infinite; }
-        #screen-land .b3 { width: 120px; height: 120px; background: #c5e8d0; bottom: 160px; left: 20px; animation: drift3 9s ease-in-out infinite; }
-        #screen-land .b4 { width: 90px; height: 90px; background: #f5c8a8; bottom: 100px; right: 10px; animation: drift4 6s ease-in-out infinite; }
-
-        .land-content { position: relative; z-index: 1; }
-        .land-eyebrow { font-size: 10px; letter-spacing: 4px; color: #8a7060; text-transform: uppercase; font-weight: 700; margin-bottom: 14px; }
-        .land-h1 { font-size: 44px; font-weight: 900; color: #3d2b1f; line-height: 1.0; margin-bottom: 14px; }
+        #screen-land { background: #eef7f2; align-items: center; justify-content: center; padding: 48px 32px; overflow: hidden; text-align: center; }
+        #screen-land .b1 { width: 300px; height: 300px; background: #a8d4f5; top: -100px; left: -80px; animation: drift1 8s ease-in-out infinite; }
+        #screen-land .b2 { width: 260px; height: 260px; background: #f5e890; top: -60px; right: -80px; animation: drift2 9s ease-in-out infinite; }
+        #screen-land .b3 { width: 200px; height: 200px; background: #c5e8d0; bottom: 80px; left: -40px; animation: drift3 10s ease-in-out infinite; }
+        #screen-land .b4 { width: 180px; height: 180px; background: #f5c8a8; bottom: 60px; right: -40px; animation: drift4 7s ease-in-out infinite; }
+        .land-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
+        .land-wordmark { font-size: 13px; letter-spacing: 5px; color: #8a7060; text-transform: uppercase; font-weight: 700; margin-bottom: 20px; }
+        .land-h1 { font-size: 38px; font-weight: 900; color: #3d2b1f; line-height: 1.05; margin-bottom: 18px; }
         .land-h1 em { color: #5a8ab0; font-style: normal; }
-        .land-sub { font-size: 14px; color: #7a6858; line-height: 1.7; margin-bottom: 44px; max-width: 300px; }
-        .land-btn {
-            display: inline-flex; align-items: center; gap: 10px;
-            background: #3d2b1f; color: #f5e8d0;
-            border: none; border-radius: 50px;
-            padding: 16px 36px; font-size: 15px; font-weight: 700;
-            cursor: pointer; letter-spacing: 0.3px; width: fit-content;
-            transition: transform 0.15s, background 0.2s;
-        }
+        .land-sub { font-size: 14px; color: #7a6858; line-height: 1.75; margin-bottom: 44px; max-width: 320px; }
+        .land-btn { display: inline-flex; align-items: center; gap: 10px; background: #3d2b1f; color: #f5e8d0; border: none; border-radius: 50px; padding: 18px 40px; font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 0.3px; transition: transform 0.15s, background 0.2s; }
         .land-btn:hover { background: #5a3d28; }
         .land-btn:active { transform: scale(0.97); }
 
         /* HOME */
-        #screen-home { background: #faf8f4; }
-        .home-hero {
-            background: #b8d9f5;
-            padding: 52px 28px 24px;
-            position: relative; overflow: hidden; flex-shrink: 0;
-        }
-        #screen-home .b1 { width: 180px; height: 180px; background: #f5e890; top: -50px; right: -40px; animation: drift2 7s ease-in-out infinite; }
-        #screen-home .b2 { width: 100px; height: 100px; background: #c8e8f8; top: 10px; left: -20px; animation: drift3 8s ease-in-out infinite; }
-        .home-eyebrow { font-size: 10px; letter-spacing: 3px; color: #5a7a9a; text-transform: uppercase; font-weight: 700; margin-bottom: 10px; position: relative; z-index: 1; }
-        .home-h { font-size: 28px; font-weight: 900; color: #1a2a3a; line-height: 1.15; position: relative; z-index: 1; }
-        .home-cards { flex: 1; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-        .hcard {
-            border-radius: 22px; padding: 20px 22px;
-            cursor: pointer; transition: transform 0.15s;
-            position: relative; overflow: hidden;
-        }
+        #screen-home { background: #ddeefa; }
+        #screen-home .b1 { width: 280px; height: 280px; background: #f5e890; top: -80px; right: -60px; animation: drift2 8s ease-in-out infinite; opacity: 0.7; }
+        #screen-home .b2 { width: 200px; height: 200px; background: #a8d4f5; top: -40px; left: -60px; animation: drift3 9s ease-in-out infinite; opacity: 0.6; }
+        .home-header { padding: 64px 28px 20px; position: relative; z-index: 1; flex-shrink: 0; }
+        .home-h { font-size: 26px; font-weight: 900; color: #1a2a3a; line-height: 1.2; }
+        .home-cards { flex: 1; padding: 12px 18px 0; display: flex; flex-direction: column; gap: 10px; position: relative; z-index: 1; }
+        .hcard { flex: 1; border-radius: 24px; padding: 22px 24px; cursor: pointer; transition: transform 0.15s; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
         .hcard:active { transform: scale(0.98); }
-        .hcard .hblob { position: absolute; border-radius: 50%; filter: blur(24px); pointer-events: none; }
-        .hc-fit { background: #ddeefa; }
-        .hc-fit .hblob { width: 100px; height: 100px; background: #a8c8f0; right: -20px; bottom: -30px; animation: drift1 6s ease-in-out infinite; }
-        .hc-travel { background: #fdf5e0; }
-        .hc-travel .hblob { width: 100px; height: 100px; background: #f5e080; right: -20px; bottom: -30px; animation: drift2 7s ease-in-out infinite; }
-        .hc-saved { background: #e4f5ec; }
-        .hc-saved .hblob { width: 100px; height: 100px; background: #90d8a8; right: -20px; bottom: -30px; animation: drift3 8s ease-in-out infinite; }
-        .hcard-tag { font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 700; margin-bottom: 8px; position: relative; z-index: 1; }
-        .tc-fit { color: #4070a0; }
-        .tc-travel { color: #906830; }
-        .tc-saved { color: #307848; }
-        .hcard-title { font-size: 16px; font-weight: 800; color: #1a2020; margin-bottom: 3px; position: relative; z-index: 1; }
-        .hcard-desc { font-size: 12px; color: #7a8878; line-height: 1.4; position: relative; z-index: 1; }
+        .hcard .hblob { position: absolute; border-radius: 50%; filter: blur(30px); pointer-events: none; }
+        .hc-fit { background: #3d2b1f; }
+        .hc-fit .hblob { width: 160px; height: 160px; background: #7a5a3a; top: -30px; right: -30px; animation: drift1 7s ease-in-out infinite; }
+        .hc-travel { background: #f5e8d0; }
+        .hc-travel .hblob { width: 160px; height: 160px; background: #f5c870; top: -30px; right: -30px; animation: drift2 8s ease-in-out infinite; }
+        .hc-saved { background: #c8e4f8; }
+        .hc-saved .hblob { width: 160px; height: 160px; background: #80b8e0; top: -30px; right: -30px; animation: drift3 9s ease-in-out infinite; }
+        .hcard-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; position: relative; z-index: 1; }
+        .hc-fit .hcard-label { color: #a08060; }
+        .hc-travel .hcard-label { color: #a08040; }
+        .hc-saved .hcard-label { color: #4a7090; }
+        .hcard-title { font-size: 18px; font-weight: 900; margin-bottom: 5px; position: relative; z-index: 1; line-height: 1.2; }
+        .hc-fit .hcard-title { color: #f5e8d0; }
+        .hc-travel .hcard-title { color: #3d2b1f; }
+        .hc-saved .hcard-title { color: #1a2a3a; }
+        .hcard-desc { font-size: 12px; line-height: 1.5; position: relative; z-index: 1; }
+        .hc-fit .hcard-desc { color: #9a8070; }
+        .hc-travel .hcard-desc { color: #8a7050; }
+        .hc-saved .hcard-desc { color: #5a7888; }
 
-        /* BOTTOM NAV */
-        .bnav {
-            background: rgba(250,248,244,0.96);
-            border-top: 1px solid #e8e0d4;
-            display: flex; padding: 12px 0 18px;
-            flex-shrink: 0;
-        }
-        .bni { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-        .bni-lbl { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: #c0b0a0; }
-        .bni-lbl.act { color: #8a6a50; font-weight: 700; }
+        /* BUBBLE NAV */
+        .bnav-wrap { padding: 12px 18px 20px; flex-shrink: 0; position: relative; z-index: 1; }
+        .bnav { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.6); display: flex; padding: 10px 8px; box-shadow: 0 4px 20px rgba(61,43,31,0.1); }
+        .bni { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 4px 0; border-radius: 40px; transition: background 0.2s; }
+        .bni:hover { background: rgba(61,43,31,0.05); }
+        .bni-lbl { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: #b0a090; font-weight: 600; }
+        .bni-lbl.act { color: #3d2b1f; }
+        .bni-dot { width: 4px; height: 4px; border-radius: 50%; background: #3d2b1f; display: none; margin-top: 2px; }
+        .bni-dot.act { display: block; }
 
-        /* FIT SCREEN */
-        #screen-fit { background: #faf8f4; overflow-y: auto; }
-        .fit-hero {
-            background: #c8e4f8;
-            padding: 48px 28px 22px;
-            position: relative; overflow: hidden; flex-shrink: 0;
-        }
-        #screen-fit .b1 { width: 150px; height: 150px; background: #f5e890; top: -30px; right: -30px; animation: drift1 6s ease-in-out infinite; }
-        #screen-fit .b2 { width: 80px; height: 80px; background: #a8d8f8; bottom: -10px; left: 30px; animation: drift3 7s ease-in-out infinite; }
-        .back-btn {
-            background: none; border: none; color: #5a7a9a;
-            font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
-            cursor: pointer; display: flex; align-items: center; gap: 6px;
-            margin-bottom: 16px; padding: 0; position: relative; z-index: 1; font-weight: 600;
-        }
-        .fit-h { font-size: 26px; font-weight: 900; color: #1a2a3a; position: relative; z-index: 1; margin-bottom: 3px; }
-        .fit-sub { font-size: 12px; color: #6a8090; position: relative; z-index: 1; }
-        .fit-body { padding: 20px 24px 40px; }
+        /* SHARED HERO */
+        .screen-hero { padding: 52px 28px 22px; position: relative; overflow: hidden; flex-shrink: 0; }
+        .back-btn { background: none; border: none; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-bottom: 16px; padding: 0; position: relative; z-index: 1; font-weight: 700; }
+        .screen-h { font-size: 26px; font-weight: 900; position: relative; z-index: 1; margin-bottom: 3px; }
+        .screen-sub { font-size: 12px; position: relative; z-index: 1; }
+
+        /* FORM SHARED */
+        .form-body { padding: 20px 24px 40px; overflow-y: auto; flex: 1; }
         .f-section { margin-bottom: 20px; }
         .f-lbl { font-size: 9px; letter-spacing: 2.5px; color: #a09080; text-transform: uppercase; font-weight: 700; margin-bottom: 8px; }
         .f-input-wrap { position: relative; }
-        .f-input {
-            width: 100%; background: white;
-            border: 1.5px solid #e8e0d4; border-radius: 14px;
-            padding: 12px 16px; font-size: 14px; color: #3d2b1f;
-            outline: none; transition: border-color 0.2s;
-        }
-        .f-input:focus { border-color: #7ab0d8; }
-        .f-dropdown {
-            position: absolute; top: calc(100% + 6px); left: 0; right: 0;
-            background: white; border: 1.5px solid #e8e0d4;
-            border-radius: 14px; z-index: 100; overflow: hidden; display: none;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        }
+        .f-input, .f-date { width: 100%; background: white; border: 1.5px solid #e8e0d4; border-radius: 14px; padding: 12px 16px; font-size: 14px; color: #3d2b1f; outline: none; transition: border-color 0.2s; }
+        .f-dropdown { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: white; border: 1.5px solid #e8e0d4; border-radius: 14px; z-index: 100; overflow: hidden; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
         .f-dropdown.open { display: block; }
-        .f-drop-item {
-            padding: 11px 16px; font-size: 13px; color: #7a6858;
-            cursor: pointer; border-bottom: 1px solid #f0ece8;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            transition: background 0.15s;
-        }
+        .f-drop-item { padding: 11px 16px; font-size: 13px; color: #7a6858; cursor: pointer; border-bottom: 1px solid #f0ece8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: background 0.15s; }
         .f-drop-item:last-child { border-bottom: none; }
         .f-drop-item:hover { background: #faf5f0; color: #3d2b1f; }
         .f-pills { display: flex; gap: 8px; flex-wrap: wrap; }
-        .f-pill {
-            padding: 8px 18px; border-radius: 50px; font-size: 12px;
-            cursor: pointer; border: 1.5px solid #e0d8d0;
-            color: #a09080; background: white;
-            transition: all 0.15s; font-weight: 600;
-        }
-        .f-pill.on { background: #f5e8d0; border-color: #c0a070; color: #3d2b1f; }
-        .date-input {
-            width: 100%; background: white;
-            border: 1.5px solid #e8e0d4; border-radius: 14px;
-            padding: 12px 16px; font-size: 14px; color: #3d2b1f;
-            outline: none; margin-top: 10px; display: none;
-        }
+        .f-pill { padding: 8px 18px; border-radius: 50px; font-size: 12px; cursor: pointer; border: 1.5px solid #e0d8d0; color: #a09080; background: white; transition: all 0.15s; font-weight: 600; }
+        .date-row { display: flex; gap: 10px; }
+        .date-row .f-date { flex: 1; }
+        .date-input { width: 100%; background: white; border: 1.5px solid #e8e0d4; border-radius: 14px; padding: 12px 16px; font-size: 14px; color: #3d2b1f; outline: none; margin-top: 10px; display: none; }
         .date-input.visible { display: block; }
         .time-wrap { display: none; margin-top: 12px; }
         .time-wrap.visible { display: block; }
         .time-card { background: white; border: 1.5px solid #e8e0d4; border-radius: 16px; padding: 16px 18px; }
-        .time-display { text-align: center; font-size: 32px; font-weight: 900; color: #5a8ab0; margin-bottom: 12px; letter-spacing: -1px; }
-        .time-labels { display: flex; justify-content: space-between; font-size: 10px; color: #c0b0a0; margin-top: 8px; letter-spacing: 0.3px; }
-        input[type="range"] { width: 100%; accent-color: #5a8ab0; cursor: pointer; }
-        .f-submit {
-            width: 100%; background: #3d2b1f; color: #f5e8d0;
-            border: none; border-radius: 50px; padding: 16px;
-            font-size: 15px; font-weight: 800; cursor: pointer;
-            letter-spacing: 0.3px; transition: transform 0.1s, background 0.2s;
-            margin-top: 8px;
-        }
-        .f-submit:hover { background: #5a3d28; }
+        .time-labels { display: flex; justify-content: space-between; font-size: 10px; color: #c0b0a0; margin-top: 8px; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        .f-submit { width: 100%; border: none; border-radius: 50px; padding: 16px; font-size: 15px; font-weight: 800; cursor: pointer; letter-spacing: 0.3px; transition: transform 0.1s, filter 0.2s; margin-top: 8px; }
+        .f-submit:hover { filter: brightness(0.9); }
         .f-submit:active { transform: scale(0.98); }
 
+        /* FIT SECTION — BLUE */
+        #screen-fit { background: #faf8f4; overflow-y: auto; }
+        #screen-fit .screen-hero { background: #c8e4f8; }
+        #screen-fit .b1 { width: 200px; height: 200px; background: #f5e890; top: -40px; right: -40px; animation: drift1 6s ease-in-out infinite; }
+        #screen-fit .b2 { width: 120px; height: 120px; background: #a8d8f8; bottom: -20px; left: 20px; animation: drift3 7s ease-in-out infinite; }
+        #screen-fit .back-btn { color: #4a7a9a; }
+        #screen-fit .screen-h { color: #1a2a3a; }
+        #screen-fit .screen-sub { color: #5a7888; }
+        #screen-fit .f-pill.on { background: #ddeefa; border-color: #5a8ab0; color: #1a2a3a; }
+        #screen-fit .f-input:focus { border-color: #7ab0d8; }
+        #screen-fit .f-submit { background: #4a7a9a; color: white; }
+        #screen-fit .time-display { text-align: center; font-size: 32px; font-weight: 900; color: #4a7a9a; margin-bottom: 12px; letter-spacing: -1px; }
+        #screen-fit input[type="range"] { accent-color: #4a7a9a; }
+
+        /* PACK SECTION — AMBER */
+        #screen-pack { background: #faf8f4; overflow-y: auto; }
+        #screen-pack .screen-hero { background: #fdf0e0; }
+        #screen-pack .b1 { width: 200px; height: 200px; background: #f5c870; top: -40px; right: -40px; animation: drift2 6s ease-in-out infinite; }
+        #screen-pack .b2 { width: 120px; height: 120px; background: #f5e890; bottom: -20px; left: 20px; animation: drift1 7s ease-in-out infinite; }
+        #screen-pack .back-btn { color: #a07030; }
+        #screen-pack .screen-h { color: #3a2010; }
+        #screen-pack .screen-sub { color: #907050; }
+        #screen-pack .f-pill.on { background: #fdf0d0; border-color: #c0a040; color: #3a2010; }
+        #screen-pack .f-input:focus, #screen-pack .f-date:focus { border-color: #c0a040; }
+        #screen-pack .f-submit { background: #a07030; color: #fff8e8; }
+
+        /* PROFILE SECTION — GREEN */
+        #screen-profile { background: #faf8f4; overflow-y: auto; }
+        #screen-profile .screen-hero { background: #e8f5d4; }
+        #screen-profile .b1 { width: 200px; height: 200px; background: #a0d880; top: -40px; right: -40px; animation: drift3 6s ease-in-out infinite; }
+        #screen-profile .b2 { width: 120px; height: 120px; background: #f5e890; bottom: -20px; left: 20px; animation: drift2 7s ease-in-out infinite; }
+        #screen-profile .back-btn { color: #3a7030; }
+        #screen-profile .screen-h { color: #1a3010; }
+        #screen-profile .screen-sub { color: #5a7848; }
+        #screen-profile .f-pill.on { background: #e0f0d8; border-color: #5a9048; color: #1a3010; }
+        #screen-profile .f-input:focus { border-color: #5a9048; }
+        #screen-profile .f-submit { background: #3a7030; color: #f0f8e8; }
+        .profile-saved-badge { display: none; background: #e8f5d4; border: 1px solid #a0d880; border-radius: 50px; padding: 6px 16px; font-size: 11px; color: #3a7030; font-weight: 700; text-align: center; margin-top: 12px; }
+        .profile-saved-badge.visible { display: block; }
+
         /* LOADING */
-        #screen-loading {
-            background: #e8f4f0;
-            align-items: center; justify-content: center;
-            gap: 20px; overflow: hidden;
-        }
-        #screen-loading .b1 { width: 200px; height: 200px; background: #a8d4f5; top: -40px; left: -40px; animation: drift1 6s ease-in-out infinite; }
-        #screen-loading .b2 { width: 160px; height: 160px; background: #f5e890; bottom: 40px; right: -30px; animation: drift2 7s ease-in-out infinite; }
-        #screen-loading .b3 { width: 100px; height: 100px; background: #c5e8d0; bottom: 100px; left: 40px; animation: drift3 8s ease-in-out infinite; }
+        #screen-loading { background: #eef7f2; align-items: center; justify-content: center; gap: 20px; overflow: hidden; }
+        #screen-loading .b1 { width: 260px; height: 260px; background: #a8d4f5; top: -60px; left: -50px; animation: drift1 6s ease-in-out infinite; }
+        #screen-loading .b2 { width: 220px; height: 220px; background: #f5e890; bottom: 20px; right: -50px; animation: drift2 7s ease-in-out infinite; }
+        #screen-loading .b3 { width: 160px; height: 160px; background: #c5e8d0; bottom: 120px; left: 20px; animation: drift3 8s ease-in-out infinite; }
         .loading-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-        .loading-ring {
-            width: 56px; height: 56px; border-radius: 50%;
-            border: 3px solid rgba(90,138,176,0.2);
-            border-top-color: #5a8ab0;
-            animation: spin 1s linear infinite;
-        }
+        .loading-ring { width: 56px; height: 56px; border-radius: 50%; border: 3px solid rgba(90,138,176,0.2); border-top-color: #5a8ab0; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-text { font-size: 11px; letter-spacing: 3px; color: #7a9ab0; text-transform: uppercase; font-weight: 700; }
 
-        /* RESULTS */
+        /* RESULTS — BLUE */
         #screen-results { overflow-y: auto; background: #faf8f4; }
-        .res-hero {
-            background: #c8e4f8; padding: 48px 28px 22px;
-            position: relative; overflow: hidden; flex-shrink: 0;
-        }
-        #screen-results .b1 { width: 140px; height: 140px; background: #f5e890; top: -20px; right: -20px; animation: drift2 7s ease-in-out infinite; }
-        #screen-results .b2 { width: 80px; height: 80px; background: #a8d8f8; bottom: -10px; left: 20px; animation: drift3 6s ease-in-out infinite; }
+        #screen-results .screen-hero { background: #c8e4f8; }
+        #screen-results .b1 { width: 180px; height: 180px; background: #f5e890; top: -30px; right: -30px; animation: drift2 7s ease-in-out infinite; }
+        #screen-results .b2 { width: 100px; height: 100px; background: #a8d8f8; bottom: -10px; left: 20px; animation: drift3 6s ease-in-out infinite; }
+        #screen-results .back-btn { color: #4a7a9a; }
+        #screen-results .screen-h { color: #1a2a3a; }
+        #screen-results .screen-sub { color: #5a7888; }
         .res-location { font-size: 20px; font-weight: 900; color: #1a2a3a; position: relative; z-index: 1; margin-bottom: 3px; }
-        .res-datetime { font-size: 11px; color: #6a8090; position: relative; z-index: 1; letter-spacing: 0.3px; }
-        .weather-grid {
-            display: flex; gap: 1px; background: #e8e0d4;
-            border-bottom: 1px solid #e8e0d4; flex-shrink: 0;
-        }
+        .res-datetime { font-size: 11px; color: #6a8090; position: relative; z-index: 1; }
+        .weather-grid { display: flex; gap: 1px; background: #e8e0d4; border-bottom: 1px solid #e8e0d4; flex-shrink: 0; }
         .wcell { flex: 1; background: white; padding: 16px 10px; text-align: center; }
         .wcell-lbl { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #c0b0a0; margin-bottom: 6px; font-weight: 700; }
         .wcell-val { font-size: 22px; font-weight: 900; color: #3d2b1f; }
         .wcell-unit { font-size: 10px; color: #c0b0a0; margin-top: 2px; }
-        .conditions-bar {
-            background: #fdf5e4; padding: 12px 28px;
-            font-size: 12px; color: #8a6830; font-weight: 700;
-            letter-spacing: 0.5px; border-bottom: 1px solid #e8e0d4;
-            flex-shrink: 0;
-        }
+        .conditions-bar { background: #fdf5e4; padding: 12px 28px; font-size: 12px; color: #8a6830; font-weight: 700; letter-spacing: 0.5px; border-bottom: 1px solid #e8e0d4; flex-shrink: 0; }
         .outfit-wrap { padding: 22px 24px 120px; }
         .outfit-heading { font-size: 9px; letter-spacing: 3px; color: #c0b0a0; text-transform: uppercase; font-weight: 700; margin-bottom: 18px; }
         .outfit-row { display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: 1px solid #f0e8e0; }
         .outfit-row:last-child { border-bottom: none; }
-        .outfit-icon-box {
-            width: 38px; height: 38px; border-radius: 12px;
-            background: #f0e8e0; display: flex; align-items: center;
-            justify-content: center; flex-shrink: 0;
-        }
+        .outfit-icon-box { width: 38px; height: 38px; border-radius: 12px; background: #f0e8e0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .outfit-cat { font-size: 9px; letter-spacing: 2px; color: #c0b0a0; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
         .outfit-item { font-size: 14px; color: #3d2b1f; line-height: 1.5; font-weight: 500; }
-        .save-fab {
-            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
-            background: #3d2b1f; color: #f5e8d0;
-            border: none; border-radius: 50px; padding: 14px 28px;
-            font-size: 13px; font-weight: 700; cursor: pointer;
-            display: flex; align-items: center; gap: 8px;
-            transition: background 0.2s; white-space: nowrap; z-index: 50;
-            box-shadow: 0 4px 20px rgba(61,43,31,0.25);
-        }
-        .save-fab:hover { background: #5a3d28; }
-        .save-fab.saved { background: #5a8ab0; color: white; box-shadow: 0 4px 20px rgba(90,138,176,0.3); }
 
-        /* SAVED */
+        /* PACK RESULTS — AMBER */
+        #screen-pack-results { overflow-y: auto; background: #faf8f4; }
+        #screen-pack-results .screen-hero { background: #fdf0e0; }
+        #screen-pack-results .b1 { width: 180px; height: 180px; background: #f5c870; top: -30px; right: -30px; animation: drift1 7s ease-in-out infinite; }
+        #screen-pack-results .b2 { width: 100px; height: 100px; background: #f5e890; bottom: -10px; left: 20px; animation: drift2 6s ease-in-out infinite; }
+        #screen-pack-results .back-btn { color: #a07030; }
+        #screen-pack-results .screen-h { color: #3a2010; }
+        #screen-pack-results .screen-sub { color: #907050; }
+        .weather-note { background: #fdf5e0; border-left: 3px solid #f5c870; padding: 12px 16px; margin: 0 24px 4px; border-radius: 0 10px 10px 0; font-size: 12px; color: #7a5820; line-height: 1.5; flex-shrink: 0; }
+        .pack-wrap { padding: 16px 24px 120px; }
+        .pack-section { margin-bottom: 20px; }
+        .pack-section-title { font-size: 9px; letter-spacing: 2.5px; color: #c0b0a0; text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
+        .pack-items { display: flex; flex-direction: column; gap: 6px; }
+        .pack-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: white; border: 1.5px solid #e8e0d4; border-radius: 12px; font-size: 13px; color: #3d2b1f; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+        .pack-item.checked { background: #fdf0d0; border-color: #c0a040; text-decoration: line-through; color: #a09060; }
+        .pack-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #e0d8d0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+        .pack-item.checked .pack-check { background: #c0a040; border-color: #c0a040; }
+        .trip-days { display: flex; gap: 6px; overflow-x: auto; padding: 0 24px 4px; flex-shrink: 0; scrollbar-width: none; }
+        .trip-days::-webkit-scrollbar { display: none; }
+        .day-pill { flex-shrink: 0; background: white; border: 1.5px solid #e8e0d4; border-radius: 14px; padding: 10px 14px; text-align: center; min-width: 70px; }
+        .day-pill-date { font-size: 9px; color: #c0b0a0; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .day-pill-temp { font-size: 14px; font-weight: 900; color: #3d2b1f; }
+        .day-pill-icon { font-size: 16px; margin-top: 2px; }
+
+        /* SAVED — GREEN */
         #screen-saved { overflow-y: auto; background: #faf8f4; }
-        .saved-hero {
-            background: #d4eedc; padding: 48px 28px 22px;
-            position: relative; overflow: hidden; flex-shrink: 0;
-        }
-        #screen-saved .b1 { width: 140px; height: 140px; background: #a0d8b0; top: -20px; right: -20px; animation: drift1 7s ease-in-out infinite; }
-        #screen-saved .b2 { width: 80px; height: 80px; background: #f5e890; bottom: -10px; left: 20px; animation: drift2 6s ease-in-out infinite; }
+        #screen-saved .screen-hero { background: #d4eedc; }
+        #screen-saved .b1 { width: 180px; height: 180px; background: #a0d8b0; top: -30px; right: -30px; animation: drift1 7s ease-in-out infinite; }
+        #screen-saved .b2 { width: 100px; height: 100px; background: #f5e890; bottom: -10px; left: 20px; animation: drift2 6s ease-in-out infinite; }
+        #screen-saved .back-btn { color: #3a7050; }
+        #screen-saved .screen-h { color: #1a3028; }
+        #screen-saved .screen-sub { color: #5a7868; }
         .saved-list { padding: 16px 18px 100px; }
-        .saved-card {
-            background: white; border: 1.5px solid #e8e0d4;
-            border-radius: 18px; padding: 16px 18px; margin-bottom: 10px;
-            cursor: pointer; transition: border-color 0.2s, transform 0.15s;
-        }
-        .saved-card:hover { border-color: #c0a070; transform: scale(1.01); }
-        .saved-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .saved-card { background: white; border: 1.5px solid #e8e0d4; border-radius: 18px; padding: 16px 18px; margin-bottom: 10px; transition: border-color 0.2s, transform 0.15s; }
+        .saved-card:hover { transform: scale(1.01); }
+        .saved-card.type-outfit { border-left: 4px solid #5a8ab0; }
+        .saved-card.type-pack { border-left: 4px solid #c0a040; }
+        .saved-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
         .saved-loc { font-size: 14px; font-weight: 800; color: #3d2b1f; }
-        .saved-date { font-size: 10px; color: #c0b0a0; letter-spacing: 0.5px; }
+        .saved-date { font-size: 10px; color: #c0b0a0; }
+        .saved-type-badge { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-bottom: 8px; }
+        .badge-outfit { color: #4a7a9a; }
+        .badge-pack { color: #a07030; }
         .saved-pills { display: flex; gap: 6px; flex-wrap: wrap; }
         .saved-pill { background: #f5ede4; border-radius: 20px; padding: 4px 10px; font-size: 10px; color: #8a7060; font-weight: 600; }
-        .saved-outfit-preview { font-size: 12px; color: #a09080; margin-top: 8px; }
+        .saved-pill.pack { background: #fdf0d0; color: #8a6030; }
+        .saved-preview { font-size: 12px; color: #a09080; margin-top: 8px; }
         .empty-state { text-align: center; padding: 60px 24px; color: #c0b0a0; font-size: 13px; line-height: 1.8; }
         .empty-state strong { display: block; font-size: 16px; color: #a09080; margin-bottom: 8px; font-weight: 800; }
 
-        @media (max-width: 420px) {
-            .land-h1 { font-size: 36px; }
-            .app { max-height: 100vh; }
-        }
+        /* FAB */
+        .save-fab { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); border: none; border-radius: 50px; padding: 14px 28px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: filter 0.2s; white-space: nowrap; z-index: 50; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+        .save-fab:hover { filter: brightness(0.9); }
+        .save-fab.outfit-fab { background: #3d2b1f; color: #f5e8d0; }
+        .save-fab.pack-fab { background: #a07030; color: #fff8e8; }
+        .save-fab.saved-state { background: #3a7030; color: #f0f8e8; }
+
+        @media (max-width: 420px) { .land-h1 { font-size: 32px; } .app { max-height: 100vh; } }
     </style>
 </head>
 <body>
@@ -296,85 +242,76 @@
 
     <!-- LANDING -->
     <div class="screen active" id="screen-land">
-        <div class="blob b1"></div>
-        <div class="blob b2"></div>
-        <div class="blob b3"></div>
-        <div class="blob b4"></div>
+        <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div>
         <div class="land-content">
-            <div class="land-eyebrow">FitForecast</div>
-            <div class="land-h1">Dress for<br/>the world<br/><em>outside.</em></div>
-            <div class="land-sub">Don't know what to wear? The weather knows. Let us translate it into your perfect fit.</div>
+            <div class="land-wordmark">FitForecast</div>
+            <div class="land-h1">Don't guess.<br/>Dress for the<br/><em>actual weather.</em></div>
+            <div class="land-sub">FitForecast tells you exactly what to wear based on the forecast, time of day, and how you handle temperature — so you're ready for whatever outside you're doing.</div>
             <button class="land-btn" onclick="goTo('screen-land','screen-home')">
-                Begin
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M3 8h10M9 4l4 4-4 4" stroke="#f5e8d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                Plan my outfit
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#f5e8d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
         </div>
     </div>
 
     <!-- HOME -->
     <div class="screen hidden" id="screen-home">
-        <div class="home-hero">
-            <div class="blob b1"></div>
-            <div class="blob b2"></div>
-            <div class="home-eyebrow">Good morning</div>
-            <div class="home-h">Where are<br/>you headed?</div>
-        </div>
+        <div class="blob b1"></div><div class="blob b2"></div>
+        <div class="home-header"><div class="home-h">What do you need<br/>help dressing for<br/>today?</div></div>
         <div class="home-cards">
             <div class="hcard hc-fit" onclick="goTo('screen-home','screen-fit')">
                 <div class="hblob"></div>
-                <div class="hcard-tag tc-fit">Daily</div>
-                <div class="hcard-title">Check my fit</div>
-                <div class="hcard-desc">Get an outfit for today's conditions</div>
+                <div class="hcard-label">Daily</div>
+                <div class="hcard-title">What should<br/>I wear today?</div>
+                <div class="hcard-desc">Get a personalized outfit for today's forecast</div>
             </div>
-            <div class="hcard hc-travel">
+            <div class="hcard hc-travel" onclick="goTo('screen-home','screen-pack')">
                 <div class="hblob"></div>
-                <div class="hcard-tag tc-travel">Travel</div>
-                <div class="hcard-title">Pack for a trip</div>
-                <div class="hcard-desc">Plan outfits for your destination</div>
+                <div class="hcard-label">Travel</div>
+                <div class="hcard-title">Help me pack</div>
+                <div class="hcard-desc">Plan outfits for your destination and weather</div>
             </div>
             <div class="hcard hc-saved" onclick="goTo('screen-home','screen-saved')">
                 <div class="hblob"></div>
-                <div class="hcard-tag tc-saved">Archive</div>
-                <div class="hcard-title">Saved fits</div>
-                <div class="hcard-desc">Your past looks and weather moments</div>
+                <div class="hcard-label">Archive</div>
+                <div class="hcard-title">Saved outfits</div>
+                <div class="hcard-desc">Revisit past fits and forecasts</div>
             </div>
         </div>
-        <div class="bnav">
-            <div class="bni">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8l7-6 7 6v8H2V8z" stroke="#8a6a50" stroke-width="1.4"/></svg>
-                <span class="bni-lbl act">Home</span>
-            </div>
-            <div class="bni">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5" stroke="#c0b0a0" stroke-width="1.4"/><path d="M12 12l4 4" stroke="#c0b0a0" stroke-width="1.4" stroke-linecap="round"/></svg>
-                <span class="bni-lbl">Explore</span>
-            </div>
-            <div class="bni">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3.5" stroke="#c0b0a0" stroke-width="1.4"/><path d="M2 16c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="#c0b0a0" stroke-width="1.4" stroke-linecap="round"/></svg>
-                <span class="bni-lbl">Profile</span>
+        <div class="bnav-wrap">
+            <div class="bnav">
+                <div class="bni" onclick="goTo(activeScreen(),'screen-home')">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8l7-6 7 6v8H2V8z" stroke="#3d2b1f" stroke-width="1.4"/></svg>
+                    <span class="bni-lbl act">Home</span><div class="bni-dot act"></div>
+                </div>
+                <div class="bni">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5" stroke="#b0a090" stroke-width="1.4"/><path d="M12 12l4 4" stroke="#b0a090" stroke-width="1.4" stroke-linecap="round"/></svg>
+                    <span class="bni-lbl">Explore</span><div class="bni-dot"></div>
+                </div>
+                <div class="bni" onclick="goTo(activeScreen(),'screen-profile')">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3.5" stroke="#b0a090" stroke-width="1.4"/><path d="M2 16c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="#b0a090" stroke-width="1.4" stroke-linecap="round"/></svg>
+                    <span class="bni-lbl">Profile</span><div class="bni-dot"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- CHECK MY FIT -->
     <div class="screen hidden" id="screen-fit">
-        <div class="fit-hero">
-            <div class="blob b1"></div>
-            <div class="blob b2"></div>
+        <div class="screen-hero">
+            <div class="blob b1"></div><div class="blob b2"></div>
             <button class="back-btn" onclick="goTo('screen-fit','screen-home')">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 7H4M6 4L3 7l3 3" stroke="#5a7a9a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Back
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 7H4M6 4L3 7l3 3" stroke="#4a7a9a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Back
             </button>
-            <div class="fit-h">Check my fit</div>
-            <div class="fit-sub">Tell us about your day</div>
+            <div class="screen-h">Check my fit</div>
+            <div class="screen-sub">Tell us about your day</div>
         </div>
-        <div class="fit-body">
+        <div class="form-body">
             <div class="f-section">
                 <div class="f-lbl">Location</div>
                 <div class="f-input-wrap">
-                    <input class="f-input" id="location" placeholder="City or zip code" autocomplete="off"/>
-                    <div class="f-dropdown" id="dropdown"></div>
+                    <input class="f-input" id="fit-location" placeholder="City or zip code" autocomplete="off"/>
+                    <div class="f-dropdown" id="fit-dropdown"></div>
                 </div>
             </div>
             <div class="f-section">
@@ -393,8 +330,8 @@
                 </div>
                 <div class="time-wrap" id="time-wrap">
                     <div class="time-card">
-                        <div class="time-display" id="time-display">12:00 PM</div>
-                        <input type="range" id="time-slider" min="0" max="23" value="12" step="1" oninput="updateTime(this.value)"/>
+                        <div id="time-display" style="text-align:center;font-size:32px;font-weight:900;color:#4a7a9a;margin-bottom:12px;letter-spacing:-1px">12:00 PM</div>
+                        <input type="range" id="time-slider" min="0" max="23" value="12" step="1" oninput="updateTime(this.value)" style="accent-color:#4a7a9a"/>
                         <div class="time-labels"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>11 PM</span></div>
                     </div>
                 </div>
@@ -415,68 +352,155 @@
             </div>
             <button class="f-submit" onclick="submitFit()">Forecast my fit →</button>
         </div>
-        <div class="bnav">
-            <div class="bni" onclick="goTo('screen-fit','screen-home')">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8l7-6 7 6v8H2V8z" stroke="#c0b0a0" stroke-width="1.4"/></svg>
-                <span class="bni-lbl">Home</span>
+        <div class="bnav-wrap">
+            <div class="bnav">
+                <div class="bni" onclick="goTo('screen-fit','screen-home')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8l7-6 7 6v8H2V8z" stroke="#b0a090" stroke-width="1.4"/></svg><span class="bni-lbl">Home</span><div class="bni-dot"></div></div>
+                <div class="bni"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5" stroke="#b0a090" stroke-width="1.4"/><path d="M12 12l4 4" stroke="#b0a090" stroke-width="1.4" stroke-linecap="round"/></svg><span class="bni-lbl">Explore</span><div class="bni-dot"></div></div>
+                <div class="bni" onclick="goTo('screen-fit','screen-profile')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3.5" stroke="#b0a090" stroke-width="1.4"/><path d="M2 16c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="#b0a090" stroke-width="1.4" stroke-linecap="round"/></svg><span class="bni-lbl">Profile</span><div class="bni-dot"></div></div>
             </div>
-            <div class="bni">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5" stroke="#c0b0a0" stroke-width="1.4"/><path d="M12 12l4 4" stroke="#c0b0a0" stroke-width="1.4" stroke-linecap="round"/></svg>
-                <span class="bni-lbl">Explore</span>
+        </div>
+    </div>
+
+    <!-- HELP ME PACK -->
+    <div class="screen hidden" id="screen-pack">
+        <div class="screen-hero">
+            <div class="blob b1"></div><div class="blob b2"></div>
+            <button class="back-btn" onclick="goTo('screen-pack','screen-home')">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 7H4M6 4L3 7l3 3" stroke="#a07030" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Back
+            </button>
+            <div class="screen-h">Help me pack</div>
+            <div class="screen-sub">We'll check the forecast and build your list</div>
+        </div>
+        <div class="form-body">
+            <div class="f-section">
+                <div class="f-lbl">Destination</div>
+                <div class="f-input-wrap">
+                    <input class="f-input" id="pack-location" placeholder="City or country" autocomplete="off"/>
+                    <div class="f-dropdown" id="pack-dropdown"></div>
+                </div>
             </div>
-            <div class="bni">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3.5" stroke="#c0b0a0" stroke-width="1.4"/><path d="M2 16c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="#c0b0a0" stroke-width="1.4" stroke-linecap="round"/></svg>
-                <span class="bni-lbl">Profile</span>
+            <div class="f-section">
+                <div class="f-lbl">Travel dates</div>
+                <div class="date-row">
+                    <input type="date" class="f-date" id="pack-start"/>
+                    <input type="date" class="f-date" id="pack-end"/>
+                </div>
+            </div>
+            <div class="f-section">
+                <div class="f-lbl">Temperature</div>
+                <div class="f-pills">
+                    <div class="f-pill on" id="pack-pill-cold" onclick="setPackTemp('cold')">I run cold</div>
+                    <div class="f-pill" id="pack-pill-warm" onclick="setPackTemp('warm')">I run warm</div>
+                </div>
+            </div>
+            <div class="f-section">
+                <div class="f-lbl">I am a</div>
+                <div class="f-pills">
+                    <div class="f-pill on" id="pack-pill-woman" onclick="setPackGender('woman')">Woman</div>
+                    <div class="f-pill" id="pack-pill-man" onclick="setPackGender('man')">Man</div>
+                </div>
+            </div>
+            <button class="f-submit" onclick="submitPack()">Build my packing list →</button>
+        </div>
+        <div class="bnav-wrap">
+            <div class="bnav">
+                <div class="bni" onclick="goTo('screen-pack','screen-home')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8l7-6 7 6v8H2V8z" stroke="#b0a090" stroke-width="1.4"/></svg><span class="bni-lbl">Home</span><div class="bni-dot"></div></div>
+                <div class="bni"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5" stroke="#b0a090" stroke-width="1.4"/><path d="M12 12l4 4" stroke="#b0a090" stroke-width="1.4" stroke-linecap="round"/></svg><span class="bni-lbl">Explore</span><div class="bni-dot"></div></div>
+                <div class="bni" onclick="goTo('screen-pack','screen-profile')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3.5" stroke="#b0a090" stroke-width="1.4"/><path d="M2 16c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="#b0a090" stroke-width="1.4" stroke-linecap="round"/></svg><span class="bni-lbl">Profile</span><div class="bni-dot"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PACK RESULTS -->
+    <div class="screen hidden" id="screen-pack-results">
+        <div class="screen-hero">
+            <div class="blob b1"></div><div class="blob b2"></div>
+            <button class="back-btn" onclick="goTo('screen-pack-results','screen-pack')">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 7H4M6 4L3 7l3 3" stroke="#a07030" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Back
+            </button>
+            <div class="screen-h" id="pack-res-dest"></div>
+            <div class="screen-sub" id="pack-res-dates"></div>
+        </div>
+        <div class="trip-days" id="trip-days"></div>
+        <div class="weather-note" id="weather-note"></div>
+        <div class="pack-wrap" id="pack-wrap"></div>
+        <button class="save-fab pack-fab" id="pack-save-btn" onclick="savePackList()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h10a1 1 0 011 1v10l-6-3-6 3V3a1 1 0 011-1z" stroke="#fff8e8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Save this list
+        </button>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen hidden" id="screen-profile">
+        <div class="screen-hero">
+            <div class="blob b1"></div><div class="blob b2"></div>
+            <button class="back-btn" onclick="goTo('screen-profile','screen-home')">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 7H4M6 4L3 7l3 3" stroke="#3a7030" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Back
+            </button>
+            <div class="screen-h">My profile</div>
+            <div class="screen-sub">Your saved preferences</div>
+        </div>
+        <div class="form-body">
+            <div class="f-section">
+                <div class="f-lbl">Temperature preference</div>
+                <div class="f-pills">
+                    <div class="f-pill on" id="prof-pill-cold" onclick="setProfTemp('cold')">I run cold</div>
+                    <div class="f-pill" id="prof-pill-warm" onclick="setProfTemp('warm')">I run warm</div>
+                </div>
+            </div>
+            <div class="f-section">
+                <div class="f-lbl">I am a</div>
+                <div class="f-pills">
+                    <div class="f-pill on" id="prof-pill-woman" onclick="setProfGender('woman')">Woman</div>
+                    <div class="f-pill" id="prof-pill-man" onclick="setProfGender('man')">Man</div>
+                </div>
+            </div>
+            <div class="f-section">
+                <div class="f-lbl">Home city</div>
+                <input class="f-input" id="prof-city" placeholder="Your home city"/>
+            </div>
+            <button class="f-submit" onclick="saveProfile()">Save preferences</button>
+            <div class="profile-saved-badge" id="profile-saved-badge">Preferences saved!</div>
+        </div>
+        <div class="bnav-wrap">
+            <div class="bnav">
+                <div class="bni" onclick="goTo('screen-profile','screen-home')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8l7-6 7 6v8H2V8z" stroke="#b0a090" stroke-width="1.4"/></svg><span class="bni-lbl">Home</span><div class="bni-dot"></div></div>
+                <div class="bni"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5" stroke="#b0a090" stroke-width="1.4"/><path d="M12 12l4 4" stroke="#b0a090" stroke-width="1.4" stroke-linecap="round"/></svg><span class="bni-lbl">Explore</span><div class="bni-dot"></div></div>
+                <div class="bni"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3.5" stroke="#3a7030" stroke-width="1.4"/><path d="M2 16c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="#3a7030" stroke-width="1.4" stroke-linecap="round"/></svg><span class="bni-lbl act">Profile</span><div class="bni-dot act"></div></div>
             </div>
         </div>
     </div>
 
     <!-- LOADING -->
     <div class="screen hidden" id="screen-loading">
-        <div class="blob b1"></div>
-        <div class="blob b2"></div>
-        <div class="blob b3"></div>
+        <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
         <div class="loading-content">
             <div class="loading-ring"></div>
-            <div class="loading-text">Forecasting your fit</div>
+            <div class="loading-text" id="loading-text">Forecasting your fit</div>
         </div>
     </div>
 
     <!-- RESULTS -->
     <div class="screen hidden" id="screen-results">
-        <div class="res-hero">
-            <div class="blob b1"></div>
-            <div class="blob b2"></div>
+        <div class="screen-hero">
+            <div class="blob b1"></div><div class="blob b2"></div>
             <button class="back-btn" onclick="goTo('screen-results','screen-fit')">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 7H4M6 4L3 7l3 3" stroke="#5a7a9a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Back
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 7H4M6 4L3 7l3 3" stroke="#4a7a9a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Back
             </button>
             <div class="res-location" id="res-location"></div>
             <div class="res-datetime" id="res-datetime"></div>
         </div>
         <div class="weather-grid">
-            <div class="wcell">
-                <div class="wcell-lbl">Temp</div>
-                <div class="wcell-val" id="res-temp"></div>
-                <div class="wcell-unit">°F</div>
-            </div>
-            <div class="wcell">
-                <div class="wcell-lbl">Wind</div>
-                <div class="wcell-val" id="res-wind"></div>
-                <div class="wcell-unit">mph</div>
-            </div>
-            <div class="wcell">
-                <div class="wcell-lbl">Sky</div>
-                <div class="wcell-val" id="res-sky" style="font-size:24px"></div>
-                <div class="wcell-unit" id="res-code"></div>
-            </div>
+            <div class="wcell"><div class="wcell-lbl">Temp</div><div class="wcell-val" id="res-temp"></div><div class="wcell-unit">°F</div></div>
+            <div class="wcell"><div class="wcell-lbl">Wind</div><div class="wcell-val" id="res-wind"></div><div class="wcell-unit">mph</div></div>
+            <div class="wcell"><div class="wcell-lbl">Sky</div><div class="wcell-val" id="res-sky" style="font-size:24px"></div><div class="wcell-unit" id="res-code"></div></div>
         </div>
         <div class="conditions-bar" id="res-conditions"></div>
         <div class="outfit-wrap">
             <div class="outfit-heading">Your fit forecast</div>
             <div id="outfit-rows"></div>
         </div>
-        <button class="save-fab" id="save-btn" onclick="saveFit()">
+        <button class="save-fab outfit-fab" id="save-btn" onclick="saveFit()">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h10a1 1 0 011 1v10l-6-3-6 3V3a1 1 0 011-1z" stroke="#f5e8d0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Save this fit
         </button>
@@ -484,29 +508,20 @@
 
     <!-- SAVED -->
     <div class="screen hidden" id="screen-saved">
-        <div class="saved-hero">
-            <div class="blob b1"></div>
-            <div class="blob b2"></div>
-            <button class="back-btn" onclick="goTo('screen-saved','screen-home')" style="color:#3a7050">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 7H4M6 4L3 7l3 3" stroke="#3a7050" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Back
+        <div class="screen-hero">
+            <div class="blob b1"></div><div class="blob b2"></div>
+            <button class="back-btn" onclick="goTo('screen-saved','screen-home')">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 7H4M6 4L3 7l3 3" stroke="#3a7050" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Back
             </button>
-            <div class="fit-h" style="color:#1a3028">Saved fits</div>
-            <div class="fit-sub" style="color:#5a7868">Your weather moments</div>
+            <div class="screen-h">Saved</div>
+            <div class="screen-sub">Your fits and packing lists</div>
         </div>
         <div class="saved-list" id="saved-list"></div>
-        <div class="bnav">
-            <div class="bni" onclick="goTo('screen-saved','screen-home')">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8l7-6 7 6v8H2V8z" stroke="#c0b0a0" stroke-width="1.4"/></svg>
-                <span class="bni-lbl">Home</span>
-            </div>
-            <div class="bni">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5" stroke="#c0b0a0" stroke-width="1.4"/><path d="M12 12l4 4" stroke="#c0b0a0" stroke-width="1.4" stroke-linecap="round"/></svg>
-                <span class="bni-lbl">Explore</span>
-            </div>
-            <div class="bni">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3.5" stroke="#c0b0a0" stroke-width="1.4"/><path d="M2 16c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="#c0b0a0" stroke-width="1.4" stroke-linecap="round"/></svg>
-                <span class="bni-lbl">Profile</span>
+        <div class="bnav-wrap">
+            <div class="bnav">
+                <div class="bni" onclick="goTo('screen-saved','screen-home')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8l7-6 7 6v8H2V8z" stroke="#b0a090" stroke-width="1.4"/></svg><span class="bni-lbl">Home</span><div class="bni-dot"></div></div>
+                <div class="bni"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5" stroke="#b0a090" stroke-width="1.4"/><path d="M12 12l4 4" stroke="#b0a090" stroke-width="1.4" stroke-linecap="round"/></svg><span class="bni-lbl">Explore</span><div class="bni-dot"></div></div>
+                <div class="bni" onclick="goTo('screen-saved','screen-profile')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3.5" stroke="#b0a090" stroke-width="1.4"/><path d="M2 16c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="#b0a090" stroke-width="1.4" stroke-linecap="round"/></svg><span class="bni-lbl">Profile</span><div class="bni-dot"></div></div>
             </div>
         </div>
     </div>
@@ -514,8 +529,16 @@
 </div>
 <script>
     let runsCold = true, gender = 'woman', dayMode = 'today', timeMode = 'now';
-    let selectedLocation = '', debounceTimer;
+    let packRunsCold = true, packGender = 'woman';
+    let profRunsCold = true, profGender = 'woman';
+    let fitSelectedLoc = '', packSelectedLoc = '';
+    let debounceTimer1 = {t:null}, debounceTimer2 = {t:null};
     let currentWeather = null, currentOutfit = null, currentLocationName = '';
+    let currentPackData = null;
+
+    const profile = JSON.parse(localStorage.getItem('ff_profile') || '{}');
+    if (profile.runsCold !== undefined) { runsCold = profile.runsCold; packRunsCold = profile.runsCold; profRunsCold = profile.runsCold; }
+    if (profile.gender) { gender = profile.gender; packGender = profile.gender; profGender = profile.gender; }
 
     const dateInput = document.getElementById('forecast-date');
     const tod = new Date();
@@ -523,6 +546,36 @@
     dateInput.min = tod.toISOString().split('T')[0];
     dateInput.max = maxD.toISOString().split('T')[0];
     dateInput.value = tod.toISOString().split('T')[0];
+
+    const packStart = document.getElementById('pack-start');
+    const packEnd = document.getElementById('pack-end');
+    const maxTrip = new Date(tod); maxTrip.setDate(tod.getDate() + 15);
+    packStart.min = tod.toISOString().split('T')[0];
+    packStart.max = maxTrip.toISOString().split('T')[0];
+    packStart.value = tod.toISOString().split('T')[0];
+    packEnd.min = tod.toISOString().split('T')[0];
+    packEnd.max = maxTrip.toISOString().split('T')[0];
+    const defEnd = new Date(tod); defEnd.setDate(tod.getDate() + 4);
+    packEnd.value = defEnd.toISOString().split('T')[0];
+
+    function applyProfile() {
+        document.getElementById('pill-cold').classList.toggle('on', runsCold);
+        document.getElementById('pill-warm').classList.toggle('on', !runsCold);
+        document.getElementById('pill-woman').classList.toggle('on', gender === 'woman');
+        document.getElementById('pill-man').classList.toggle('on', gender === 'man');
+        document.getElementById('pack-pill-cold').classList.toggle('on', packRunsCold);
+        document.getElementById('pack-pill-warm').classList.toggle('on', !packRunsCold);
+        document.getElementById('pack-pill-woman').classList.toggle('on', packGender === 'woman');
+        document.getElementById('pack-pill-man').classList.toggle('on', packGender === 'man');
+        document.getElementById('prof-pill-cold').classList.toggle('on', profRunsCold);
+        document.getElementById('prof-pill-warm').classList.toggle('on', !profRunsCold);
+        document.getElementById('prof-pill-woman').classList.toggle('on', profGender === 'woman');
+        document.getElementById('prof-pill-man').classList.toggle('on', profGender === 'man');
+        if (profile.city) { document.getElementById('prof-city').value = profile.city; document.getElementById('fit-location').value = profile.city; fitSelectedLoc = profile.city; }
+    }
+    applyProfile();
+
+    function activeScreen() { return document.querySelector('.screen.active')?.id || 'screen-home'; }
 
     function goTo(from, to) {
         document.getElementById(from).classList.remove('active');
@@ -532,132 +585,110 @@
         if (to === 'screen-saved') renderSaved();
     }
 
-    function formatHour(h) {
-        h = parseInt(h);
-        const s = h >= 12 ? 'PM' : 'AM';
-        const d = h % 12 === 0 ? 12 : h % 12;
-        return `${d}:00 ${s}`;
-    }
-
+    function formatHour(h) { h = parseInt(h); return `${h%12===0?12:h%12}:00 ${h>=12?'PM':'AM'}`; }
     function updateTime(v) { document.getElementById('time-display').textContent = formatHour(v); }
 
     function setDay(m) {
         dayMode = m;
-        document.getElementById('pill-today').classList.toggle('on', m === 'today');
-        document.getElementById('pill-another').classList.toggle('on', m === 'another');
-        dateInput.classList.toggle('visible', m === 'another');
+        document.getElementById('pill-today').classList.toggle('on', m==='today');
+        document.getElementById('pill-another').classList.toggle('on', m==='another');
+        dateInput.classList.toggle('visible', m==='another');
     }
-
     function setTime(m) {
         timeMode = m;
-        document.getElementById('pill-now').classList.toggle('on', m === 'now');
-        document.getElementById('pill-later').classList.toggle('on', m === 'later');
-        document.getElementById('time-wrap').classList.toggle('visible', m === 'later');
+        document.getElementById('pill-now').classList.toggle('on', m==='now');
+        document.getElementById('pill-later').classList.toggle('on', m==='later');
+        document.getElementById('time-wrap').classList.toggle('visible', m==='later');
+    }
+    function setTemp(p) { runsCold = p==='cold'; document.getElementById('pill-cold').classList.toggle('on',runsCold); document.getElementById('pill-warm').classList.toggle('on',!runsCold); }
+    function setGender(g) { gender = g; document.getElementById('pill-woman').classList.toggle('on',g==='woman'); document.getElementById('pill-man').classList.toggle('on',g==='man'); }
+    function setPackTemp(p) { packRunsCold = p==='cold'; document.getElementById('pack-pill-cold').classList.toggle('on',packRunsCold); document.getElementById('pack-pill-warm').classList.toggle('on',!packRunsCold); }
+    function setPackGender(g) { packGender = g; document.getElementById('pack-pill-woman').classList.toggle('on',g==='woman'); document.getElementById('pack-pill-man').classList.toggle('on',g==='man'); }
+    function setProfTemp(p) { profRunsCold = p==='cold'; document.getElementById('prof-pill-cold').classList.toggle('on',profRunsCold); document.getElementById('prof-pill-warm').classList.toggle('on',!profRunsCold); }
+    function setProfGender(g) { profGender = g; document.getElementById('prof-pill-woman').classList.toggle('on',g==='woman'); document.getElementById('prof-pill-man').classList.toggle('on',g==='man'); }
+
+    function saveProfile() {
+        const city = document.getElementById('prof-city').value.trim();
+        localStorage.setItem('ff_profile', JSON.stringify({ runsCold: profRunsCold, gender: profGender, city }));
+        runsCold = profRunsCold; gender = profGender; packRunsCold = profRunsCold; packGender = profGender;
+        if (city) { document.getElementById('fit-location').value = city; fitSelectedLoc = city; }
+        applyProfile();
+        const badge = document.getElementById('profile-saved-badge');
+        badge.classList.add('visible');
+        setTimeout(() => badge.classList.remove('visible'), 2000);
     }
 
-    function setTemp(p) {
-        runsCold = p === 'cold';
-        document.getElementById('pill-cold').classList.toggle('on', runsCold);
-        document.getElementById('pill-warm').classList.toggle('on', !runsCold);
+    function setupAutocomplete(inputId, dropdownId, setSelected, timer) {
+        const input = document.getElementById(inputId);
+        const drop = document.getElementById(dropdownId);
+        input.addEventListener('input', () => {
+            clearTimeout(timer.t); setSelected('');
+            const q = input.value.trim();
+            if (q.length < 2) { drop.classList.remove('open'); return; }
+            timer.t = setTimeout(async () => {
+                const res = await fetch(`/autocomplete?q=${encodeURIComponent(q)}`);
+                const sug = await res.json();
+                if (!sug.length) { drop.classList.remove('open'); return; }
+                drop.innerHTML = sug.map(s => `<div class="f-drop-item" onclick="pickLoc('${inputId}','${dropdownId}','${s.replace(/'/g,"\\'")}')">${s}</div>`).join('');
+                drop.classList.add('open');
+            }, 300);
+        });
+        document.addEventListener('click', e => { if (!e.target.closest(`#${inputId}`) && !e.target.closest(`#${dropdownId}`)) drop.classList.remove('open'); });
     }
 
-    function setGender(g) {
-        gender = g;
-        document.getElementById('pill-woman').classList.toggle('on', g === 'woman');
-        document.getElementById('pill-man').classList.toggle('on', g === 'man');
-    }
+    setupAutocomplete('fit-location', 'fit-dropdown', v => fitSelectedLoc = v, debounceTimer1);
+    setupAutocomplete('pack-location', 'pack-dropdown', v => packSelectedLoc = v, debounceTimer2);
 
-    const locInput = document.getElementById('location');
-    const dropdown = document.getElementById('dropdown');
-
-    locInput.addEventListener('input', () => {
-        clearTimeout(debounceTimer);
-        selectedLocation = '';
-        const q = locInput.value.trim();
-        if (q.length < 2) { dropdown.classList.remove('open'); return; }
-        debounceTimer = setTimeout(async () => {
-            const res = await fetch(`/autocomplete?q=${encodeURIComponent(q)}`);
-            const sug = await res.json();
-            if (!sug.length) { dropdown.classList.remove('open'); return; }
-            dropdown.innerHTML = sug.map(s =>
-                `<div class="f-drop-item" onclick="pickLoc('${s.replace(/'/g,"\\'")}')">${s}</div>`
-            ).join('');
-            dropdown.classList.add('open');
-        }, 300);
-    });
-
-    document.addEventListener('click', e => {
-        if (!e.target.closest('.f-input-wrap')) dropdown.classList.remove('open');
-    });
-
-    function pickLoc(name) {
-        locInput.value = name;
-        selectedLocation = name;
-        dropdown.classList.remove('open');
+    function pickLoc(inputId, dropId, name) {
+        document.getElementById(inputId).value = name;
+        document.getElementById(dropId).classList.remove('open');
+        if (inputId === 'fit-location') fitSelectedLoc = name;
+        else packSelectedLoc = name;
     }
 
     function weatherInfo(code) {
-        if (code <= 2) return ['Clear skies', '☀️'];
-        if (code === 3) return ['Overcast', '☁️'];
-        if (code >= 61 && code <= 67) return ['Rain', '🌧️'];
-        if (code >= 71 && code <= 77) return ['Snow', '❄️'];
-        return ['Mixed conditions', '🌤️'];
+        if (code <= 2) return ['Clear skies','☀️'];
+        if (code === 3) return ['Overcast','☁️'];
+        if (code >= 61 && code <= 67) return ['Rain','🌧️'];
+        if (code >= 71 && code <= 77) return ['Snow','❄️'];
+        return ['Mixed','🌤️'];
     }
 
     function fmtLocalDt(tz) {
-        try {
-            return new Intl.DateTimeFormat('en-US', {
-                timeZone: tz, weekday: 'long', month: 'long',
-                day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
-            }).format(new Date());
-        } catch(e) { return new Date().toLocaleString(); }
+        try { return new Intl.DateTimeFormat('en-US',{timeZone:tz,weekday:'long',month:'long',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date()); }
+        catch(e) { return new Date().toLocaleString(); }
     }
-
     function fmtForecastDt(dateStr, hour) {
         const [y,m,d] = dateStr.split('-');
-        const dt = new Date(y, m-1, d);
-        const ds = dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+        const ds = new Date(y,m-1,d).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
         return hour != null ? `${ds} at ${formatHour(hour)}` : ds;
+    }
+    function fmtShortDate(dateStr) {
+        const [y,m,d] = dateStr.split('-');
+        return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
     }
 
     const outfitIcons = {
         top: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 4h8M3 7l3-3h6l3 3" stroke="#5a8ab0" stroke-width="1.4" stroke-linecap="round"/><rect x="3" y="7" width="12" height="9" rx="2" stroke="#5a8ab0" stroke-width="1.4"/></svg>`,
         bottoms: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 3h10l-2 12H6L4 3z" stroke="#a07030" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3v12" stroke="#a07030" stroke-width="1.4" stroke-linecap="round"/></svg>`,
         shoes: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 13c0 0 1-6 4-7h6c2 0 4 1 4 3v1H2v3z" stroke="#3a7848" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-        accessories: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6" stroke="#8a6850" stroke-width="1.4"/><path d="M6 9h6M9 6v6" stroke="#8a6850" stroke-width="1.4" stroke-linecap="round"/></svg>`
+        accessories: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6" stroke="#8a6850" stroke-width="1.4"/><path d="M6 9h6M9 6v6" stroke="#8a6850" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+        layers: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6-4 6 4-6 4-6-4z" stroke="#7a5ab0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 10l6 4 6-4" stroke="#7a5ab0" stroke-width="1.4" stroke-linecap="round"/></svg>`
     };
 
     async function submitFit() {
-        const location = selectedLocation || locInput.value.trim();
+        const location = fitSelectedLoc || document.getElementById('fit-location').value.trim();
         if (!location) return;
         const forecast_date = dayMode === 'another' ? dateInput.value : null;
         const forecast_hour = timeMode === 'later' ? parseInt(document.getElementById('time-slider').value) : null;
-
+        document.getElementById('loading-text').textContent = 'Forecasting your fit';
         goTo('screen-fit', 'screen-loading');
-
-        const res = await fetch('/recommend', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ location, runs_cold: runsCold, gender, forecast_date, forecast_hour })
-        });
-
+        const res = await fetch('/recommend', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({location, runs_cold: runsCold, gender, forecast_date, forecast_hour}) });
         const data = await res.json();
-
-        if (!res.ok || data.error) {
-            goTo('screen-loading', 'screen-fit');
-            alert(data.error || 'Something went wrong.');
-            return;
-        }
-
-        currentWeather = data.weather;
-        currentOutfit = data.outfit;
-        currentLocationName = location;
-
+        if (!res.ok || data.error) { goTo('screen-loading','screen-fit'); alert(data.error||'Something went wrong.'); return; }
+        currentWeather = data.weather; currentOutfit = data.outfit; currentLocationName = location;
         const tz = data.weather.timezone || 'UTC';
-        const dtStr = data.weather.is_forecast
-            ? fmtForecastDt(data.weather.forecast_date, data.weather.forecast_hour)
-            : fmtLocalDt(tz);
-
+        const dtStr = data.weather.is_forecast ? fmtForecastDt(data.weather.forecast_date, data.weather.forecast_hour) : fmtLocalDt(tz);
         const [desc, icon] = weatherInfo(data.weather.weathercode);
         document.getElementById('res-location').textContent = location;
         document.getElementById('res-datetime').textContent = dtStr;
@@ -666,40 +697,84 @@
         document.getElementById('res-sky').textContent = icon;
         document.getElementById('res-code').textContent = `code ${data.weather.weathercode}`;
         document.getElementById('res-conditions').textContent = desc;
-
         const outfit = data.outfit;
-        const rows = ['top','bottoms','shoes','accessories'].filter(k => outfit[k]);
-        document.getElementById('outfit-rows').innerHTML = rows.map(k => `
-            <div class="outfit-row">
-                <div class="outfit-icon-box">${outfitIcons[k]}</div>
-                <div>
-                    <div class="outfit-cat">${k}</div>
-                    <div class="outfit-item">${outfit[k]}</div>
-                </div>
-            </div>
-        `).join('');
-
+        document.getElementById('outfit-rows').innerHTML = ['top','bottoms','shoes','accessories'].filter(k=>outfit[k]).map(k=>`
+            <div class="outfit-row"><div class="outfit-icon-box">${outfitIcons[k]}</div><div><div class="outfit-cat">${k}</div><div class="outfit-item">${outfit[k]}</div></div></div>`).join('');
         const btn = document.getElementById('save-btn');
-        btn.classList.remove('saved');
+        btn.classList.remove('saved-state');
         btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h10a1 1 0 011 1v10l-6-3-6 3V3a1 1 0 011-1z" stroke="#f5e8d0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Save this fit`;
-
-        goTo('screen-loading', 'screen-results');
+        goTo('screen-loading','screen-results');
     }
+
+    async function submitPack() {
+        const destination = packSelectedLoc || document.getElementById('pack-location').value.trim();
+        const start_date = packStart.value;
+        const end_date = packEnd.value;
+        if (!destination || !start_date || !end_date) { alert('Please fill in all fields'); return; }
+        document.getElementById('loading-text').textContent = 'Building your packing list';
+        goTo('screen-pack','screen-loading');
+        const res = await fetch('/pack', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({destination, start_date, end_date, runs_cold: packRunsCold, gender: packGender}) });
+        const data = await res.json();
+        if (!res.ok || data.error) { goTo('screen-loading','screen-pack'); alert(data.error||'Something went wrong.'); return; }
+
+        currentPackData = data;
+
+        document.getElementById('pack-res-dest').textContent = data.destination;
+        document.getElementById('pack-res-dates').textContent = `${fmtShortDate(data.start_date)} → ${fmtShortDate(data.end_date)} · ${data.trip_duration} days`;
+        document.getElementById('weather-note').textContent = data.packing_list.weather_notes || '';
+
+        document.getElementById('trip-days').innerHTML = data.days.map(d => {
+            const [,icon] = weatherInfo(d.weathercode || 0);
+            return `<div class="day-pill"><div class="day-pill-date">${fmtShortDate(d.date)}</div><div class="day-pill-temp">${Math.round(d.temp_min)}–${Math.round(d.temp_max)}°</div><div class="day-pill-icon">${icon}</div></div>`;
+        }).join('');
+
+        const pl = data.packing_list;
+        const sections = [
+            {key:'tops',label:'Tops',icon:outfitIcons.top},
+            {key:'bottoms',label:'Bottoms',icon:outfitIcons.bottoms},
+            {key:'shoes',label:'Shoes',icon:outfitIcons.shoes},
+            {key:'layers',label:'Layers & outerwear',icon:outfitIcons.layers},
+            {key:'accessories',label:'Accessories',icon:outfitIcons.accessories},
+        ].filter(s => pl[s.key] && pl[s.key].length > 0);
+
+        document.getElementById('pack-wrap').innerHTML = sections.map(s => `
+            <div class="pack-section">
+                <div class="pack-section-title">${s.label}</div>
+                <div class="pack-items">
+                    ${pl[s.key].map((item,i) => `
+                        <div class="pack-item" id="pi-${s.key}-${i}" onclick="togglePackItem('pi-${s.key}-${i}')">
+                            <div class="pack-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                            ${item}
+                        </div>`).join('')}
+                </div>
+            </div>`).join('');
+
+        const saveBtn = document.getElementById('pack-save-btn');
+        saveBtn.classList.remove('saved-state');
+        saveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h10a1 1 0 011 1v10l-6-3-6 3V3a1 1 0 011-1z" stroke="#fff8e8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Save this list`;
+
+        goTo('screen-loading','screen-pack-results');
+    }
+
+    function togglePackItem(id) { document.getElementById(id).classList.toggle('checked'); }
 
     function saveFit() {
         if (!currentWeather || !currentOutfit) return;
         const saved = JSON.parse(localStorage.getItem('ff_saved') || '[]');
-        saved.unshift({
-            location: currentLocationName,
-            date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
-            temp: currentWeather.temperature,
-            windspeed: currentWeather.windspeed,
-            weathercode: currentWeather.weathercode,
-            outfit: currentOutfit
-        });
-        localStorage.setItem('ff_saved', JSON.stringify(saved.slice(0, 30)));
+        saved.unshift({ type:'outfit', location: currentLocationName, date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}), temp: currentWeather.temperature, windspeed: currentWeather.windspeed, weathercode: currentWeather.weathercode, outfit: currentOutfit });
+        localStorage.setItem('ff_saved', JSON.stringify(saved.slice(0,30)));
         const btn = document.getElementById('save-btn');
-        btn.classList.add('saved');
+        btn.classList.add('saved-state');
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h10a1 1 0 011 1v10l-6-3-6 3V3a1 1 0 011-1z" fill="white" stroke="white" stroke-width="1.4"/></svg> Saved ✓`;
+    }
+
+    function savePackList() {
+        if (!currentPackData) return;
+        const saved = JSON.parse(localStorage.getItem('ff_saved') || '[]');
+        saved.unshift({ type:'pack', location: currentPackData.destination, date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}), start_date: currentPackData.start_date, end_date: currentPackData.end_date, trip_duration: currentPackData.trip_duration, packing_list: currentPackData.packing_list });
+        localStorage.setItem('ff_saved', JSON.stringify(saved.slice(0,30)));
+        const btn = document.getElementById('pack-save-btn');
+        btn.classList.add('saved-state');
         btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h10a1 1 0 011 1v10l-6-3-6 3V3a1 1 0 011-1z" fill="white" stroke="white" stroke-width="1.4"/></svg> Saved ✓`;
     }
 
@@ -707,22 +782,31 @@
         const saved = JSON.parse(localStorage.getItem('ff_saved') || '[]');
         const list = document.getElementById('saved-list');
         if (!saved.length) {
-            list.innerHTML = `<div class="empty-state"><strong>Nothing here yet</strong>Forecast your first fit and save it — your weather moments will live here.</div>`;
+            list.innerHTML = `<div class="empty-state"><strong>Nothing saved yet</strong>Save a fit or packing list and it'll live here.</div>`;
             return;
         }
         list.innerHTML = saved.map(s => {
+            if (s.type === 'pack') {
+                return `<div class="saved-card type-pack">
+                    <div class="saved-card-top"><div class="saved-loc">${s.location}</div><div class="saved-date">${s.date}</div></div>
+                    <div class="saved-type-badge badge-pack">Packing list</div>
+                    <div class="saved-pills">
+                        <span class="saved-pill pack">${fmtShortDate(s.start_date)} → ${fmtShortDate(s.end_date)}</span>
+                        <span class="saved-pill pack">${s.trip_duration} days</span>
+                    </div>
+                    ${s.packing_list?.tops?.length ? `<div class="saved-preview">Tops: ${s.packing_list.tops.slice(0,2).join(', ')}</div>` : ''}
+                </div>`;
+            }
             const [desc] = weatherInfo(s.weathercode);
-            return `<div class="saved-card">
-                <div class="saved-card-top">
-                    <div class="saved-loc">${s.location}</div>
-                    <div class="saved-date">${s.date}</div>
-                </div>
+            return `<div class="saved-card type-outfit">
+                <div class="saved-card-top"><div class="saved-loc">${s.location}</div><div class="saved-date">${s.date}</div></div>
+                <div class="saved-type-badge badge-outfit">Outfit</div>
                 <div class="saved-pills">
                     <span class="saved-pill">${s.temp}°F</span>
                     <span class="saved-pill">${s.windspeed} mph</span>
                     <span class="saved-pill">${desc}</span>
                 </div>
-                ${s.outfit?.top ? `<div class="saved-outfit-preview">Top: ${s.outfit.top}</div>` : ''}
+                ${s.outfit?.top ? `<div class="saved-preview">Top: ${s.outfit.top}</div>` : ''}
             </div>`;
         }).join('');
     }
