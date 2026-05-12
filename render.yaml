@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: wearcast
+    runtime: docker
+    plan: starter
+    envVars:
+      - key: OUTFIT_MODE
+        value: rules
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: DATABASE_URL
+        sync: false
