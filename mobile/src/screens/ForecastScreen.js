@@ -302,7 +302,7 @@ export default function ForecastScreen({ lang, profile }) {
 
             {/* Mascot */}
             <View style={styles.mascotRow}>
-              <PixelMascot animal={profile?.mascot || 'dog'} weather={result.weather} eventType={eventType} pixelSize={7} />
+              <PixelMascot animal={profile?.mascot || 'dog'} weather={result.weather} eventType={eventType} pixelSize={5} />
             </View>
 
             {/* Outfit recommendation */}

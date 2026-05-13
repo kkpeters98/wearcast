@@ -138,7 +138,7 @@ export default function ProfileScreen({ lang, profile, onProfileUpdate }) {
                 style={[styles.mascotBtn, mascot === m.key && styles.mascotBtnActive]}
                 onPress={() => setMascot(m.key)}
               >
-                <PixelMascot animal={m.key} pixelSize={6} />
+                <PixelMascot animal={m.key} pixelSize={4} />
                 <Text style={[styles.mascotLabel, mascot === m.key && styles.mascotLabelActive]}>
                   {m.label}
                 </Text>
