@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 import sys
 import threading
 from collections import OrderedDict
@@ -10,6 +11,14 @@ from flask import Flask, jsonify, render_template, request
 
 from outfit_engine import outfit_from_rules, detailed_packing
 from storage import log_recommendation
+
+
+def strip_markdown(text: str) -> str:
+    text = re.sub(r'\*{1,2}([^*]+)\*{1,2}', r'\1', text)
+    text = re.sub(r'^#{1,6}\s*', '', text, flags=re.MULTILINE)
+    text = re.sub(r'`([^`]+)`', r'\1', text)
+    text = re.sub(r'\n{2,}', ' ', text)
+    return text.strip()
 
 load_dotenv()
 
@@ -52,24 +61,24 @@ def _get_outfit_anthropic(weather, runs_cold=False, event_type="casual"):
     return message.content[0].text
 
 
-def resolve_outfit(weather, runs_cold, event_type="casual"):
+def resolve_outfit(weather, runs_cold, event_type="casual", gender="neutral"):
     mode = os.getenv("OUTFIT_MODE", "auto").lower().strip()
     has_key = bool(os.getenv("ANTHROPIC_API_KEY"))
 
     if mode == "rules":
-        return outfit_from_rules(weather, runs_cold, event_type), "rules"
+        return strip_markdown(outfit_from_rules(weather, runs_cold, event_type, gender)), "rules"
     if mode == "anthropic":
         if not has_key:
             raise ValueError("OUTFIT_MODE=anthropic requires ANTHROPIC_API_KEY")
-        return _get_outfit_anthropic(weather, runs_cold, event_type), "anthropic"
+        return strip_markdown(_get_outfit_anthropic(weather, runs_cold, event_type)), "anthropic"
     if mode != "auto":
-        return outfit_from_rules(weather, runs_cold, event_type), "rules"
+        return strip_markdown(outfit_from_rules(weather, runs_cold, event_type, gender)), "rules"
     if has_key:
         try:
-            return _get_outfit_anthropic(weather, runs_cold, event_type), "anthropic"
+            return strip_markdown(_get_outfit_anthropic(weather, runs_cold, event_type)), "anthropic"
         except Exception:
             pass
-    return outfit_from_rules(weather, runs_cold, event_type), "rules"
+    return strip_markdown(outfit_from_rules(weather, runs_cold, event_type, gender)), "rules"
 
 
 _GEOCODE_CACHE: OrderedDict[str, tuple[float, float]] = OrderedDict()
@@ -102,16 +111,40 @@ def get_coordinates(location):
     return lat, lon
 
 
+def _wind_direction(deg):
+    if deg is None: return None
+    dirs = ["N","NE","E","SE","S","SW","W","NW"]
+    return dirs[round(deg / 45) % 8]
+
+
 def get_current_weather(lat, lon):
     params = {
         "latitude": lat, "longitude": lon,
-        "current": ["temperature_2m", "weathercode", "windspeed_10m"],
+        "current": [
+            "temperature_2m", "apparent_temperature", "relative_humidity_2m",
+            "weathercode", "windspeed_10m", "wind_direction_10m", "precipitation",
+        ],
+        "hourly": ["uv_index", "precipitation_probability"],
         "temperature_unit": "fahrenheit", "windspeed_unit": "mph", "forecast_days": 1,
     }
     r = requests.get("https://api.open-meteo.com/v1/forecast", params=params, timeout=HTTP_TIMEOUT)
     r.raise_for_status()
-    c = r.json()["current"]
-    return {"temperature": c["temperature_2m"], "windspeed": c["windspeed_10m"], "weathercode": c["weathercode"]}
+    data = r.json()
+    c = data["current"]
+    # Grab current hour's UV and precipitation probability from hourly
+    now_hour = datetime.datetime.now().hour
+    uv = data["hourly"].get("uv_index", [None] * 24)[now_hour]
+    precip_prob = data["hourly"].get("precipitation_probability", [None] * 24)[now_hour]
+    return {
+        "temperature": round(c["temperature_2m"], 1),
+        "feels_like": round(c["apparent_temperature"], 1),
+        "humidity": c["relative_humidity_2m"],
+        "windspeed": round(c["windspeed_10m"], 1),
+        "wind_direction": _wind_direction(c.get("wind_direction_10m")),
+        "weathercode": c["weathercode"],
+        "uv_index": round(uv, 1) if uv is not None else None,
+        "precip_probability": precip_prob,
+    }
 
 
 def get_hourly_for_date(lat, lon, date_str, hour_start=0, hour_end=24):
@@ -124,7 +157,10 @@ def get_hourly_for_date(lat, lon, date_str, hour_start=0, hour_end=24):
 
     params = {
         "latitude": lat, "longitude": lon,
-        "hourly": ["temperature_2m", "weathercode", "windspeed_10m"],
+        "hourly": [
+            "temperature_2m", "apparent_temperature", "relative_humidity_2m",
+            "weathercode", "windspeed_10m", "uv_index", "precipitation_probability",
+        ],
         "temperature_unit": "fahrenheit", "windspeed_unit": "mph",
         "forecast_days": days_ahead + 1,
     }
@@ -139,9 +175,13 @@ def get_hourly_for_date(lat, lon, date_str, hour_start=0, hour_end=24):
         if h_date == date_str and hour_start <= h < hour_end:
             hours.append({
                 "hour": h,
-                "temperature": hourly["temperature_2m"][i],
-                "windspeed": hourly["windspeed_10m"][i],
+                "temperature": round(hourly["temperature_2m"][i], 1),
+                "feels_like": round(hourly["apparent_temperature"][i], 1),
+                "humidity": hourly["relative_humidity_2m"][i],
+                "windspeed": round(hourly["windspeed_10m"][i], 1),
                 "weathercode": hourly["weathercode"][i],
+                "uv_index": round(hourly["uv_index"][i], 1) if hourly.get("uv_index") else None,
+                "precip_probability": hourly["precipitation_probability"][i] if hourly.get("precipitation_probability") else None,
             })
 
     if not hours:
@@ -158,10 +198,14 @@ def get_hourly_for_date(lat, lon, date_str, hour_start=0, hour_end=24):
 
     summary = {
         "temperature": min(h["temperature"] for h in hours),
+        "feels_like": min(h["feels_like"] for h in hours),
+        "humidity": round(sum(h["humidity"] for h in hours) / len(hours)),
         "windspeed": max(h["windspeed"] for h in hours),
         "weathercode": worst_code,
         "temp_min": min(h["temperature"] for h in hours),
         "temp_max": max(h["temperature"] for h in hours),
+        "uv_index": max((h["uv_index"] for h in hours if h.get("uv_index") is not None), default=None),
+        "precip_probability": max((h["precip_probability"] for h in hours if h.get("precip_probability") is not None), default=None),
     }
     return hours, summary
 
@@ -217,6 +261,7 @@ def recommend():
     location = data.get("location")
     runs_cold = data.get("runs_cold", False)
     event_type = data.get("event_type", "casual")
+    gender = data.get("gender", "neutral")
     date_str = data.get("date")
     hour_start = int(data.get("time_start", 0))
     hour_end = int(data.get("time_end", 24))
@@ -243,7 +288,7 @@ def recommend():
         return jsonify({"error": "Weather service unavailable"}), 502
 
     try:
-        outfit, source = resolve_outfit(weather, runs_cold, event_type)
+        outfit, source = resolve_outfit(weather, runs_cold, event_type, gender)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 

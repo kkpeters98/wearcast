@@ -1,8 +1,8 @@
 export const API_BASE = 'http://192.168.86.250:5001';
 
-export async function fetchOutfit({ location, tempSensitivity, date, timeStart, timeEnd, eventType }) {
+export async function fetchOutfit({ location, tempSensitivity, date, timeStart, timeEnd, eventType, gender }) {
   const runs_cold = tempSensitivity < 0;
-  const body = { location, runs_cold, event_type: eventType || 'casual' };
+  const body = { location, runs_cold, event_type: eventType || 'casual', gender: gender || 'neutral' };
   if (date) body.date = date;
   if (timeStart != null) body.time_start = timeStart;
   if (timeEnd != null) body.time_end = timeEnd;

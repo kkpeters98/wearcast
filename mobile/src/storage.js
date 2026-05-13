@@ -7,6 +7,8 @@ export const defaultProfile = {
   homeLocation: '',
   language: 'en',
   tempSensitivity: 0,
+  gender: 'neutral',
+  mascot: 'dog',
 };
 
 export async function loadProfile() {

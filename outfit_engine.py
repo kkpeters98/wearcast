@@ -30,6 +30,18 @@ def _temp_band(temp_f: float, runs_cold: bool) -> str:
     return "hot"
 
 
+_GENDER_CONTEXT = {
+    "neutral": "",
+    "womens": (
+        " Lean into womenswear options: a blouse, tailored trousers, a midi skirt, or a dress "
+        "work well here, with flats, block heels, or ankle boots depending on formality."
+    ),
+    "mens": (
+        " Lean into menswear staples: a button-down or polo, chinos or trousers, "
+        "and clean sneakers or leather shoes depending on the occasion."
+    ),
+}
+
 _EVENT_CONTEXT = {
     "casual": "",
     "work": (
@@ -53,7 +65,7 @@ _EVENT_CONTEXT = {
 }
 
 
-def outfit_from_rules(weather: dict, runs_cold: bool = False, event_type: str = "casual") -> str:
+def outfit_from_rules(weather: dict, runs_cold: bool = False, event_type: str = "casual", gender: str = "neutral") -> str:
     temp = float(weather["temperature"])
     wind = float(weather["windspeed"])
     code = int(weather["weathercode"])
@@ -143,6 +155,10 @@ def outfit_from_rules(weather: dict, runs_cold: bool = False, event_type: str = 
     event_note = _EVENT_CONTEXT.get(event_type, "")
     if event_note:
         chunks.append(event_note.strip())
+
+    gender_note = _GENDER_CONTEXT.get(gender, "")
+    if gender_note:
+        chunks.append(gender_note.strip())
 
     text = " ".join(chunks)
     while "  " in text:

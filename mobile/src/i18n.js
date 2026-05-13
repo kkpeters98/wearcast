@@ -50,6 +50,11 @@ export const translations = {
     trip: 'Trip',
     to: 'to',
     for: 'for',
+    genderPref: 'Style preference',
+    genderNeutral: 'Any style',
+    genderWomens: "Women's",
+    genderMens: "Men's",
+    mascotPref: 'Your mascot',
   },
   es: {
     appName: 'WearCast',
@@ -102,6 +107,11 @@ export const translations = {
     trip: 'Viaje',
     to: 'a',
     for: 'por',
+    genderPref: 'Preferencia de estilo',
+    genderNeutral: 'Cualquier estilo',
+    genderWomens: 'Mujer',
+    genderMens: 'Hombre',
+    mascotPref: 'Tu mascota',
   },
   fr: {
     appName: 'WearCast',
@@ -154,6 +164,11 @@ export const translations = {
     trip: 'Voyage',
     to: 'à',
     for: 'pour',
+    genderPref: 'Préférence de style',
+    genderNeutral: 'Tous styles',
+    genderWomens: 'Femme',
+    genderMens: 'Homme',
+    mascotPref: 'Votre mascotte',
   },
 };
 
