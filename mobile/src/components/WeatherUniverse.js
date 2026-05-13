@@ -36,19 +36,36 @@ const ITEMS = {
   athletic: { top:['Athletic Top','#E53E3E'], bot:['Shorts',      '#1A3A8A'], shoe:['Runners',      '#F0F0F0'] },
 };
 
-// Sky gradient top → bottom.  Night only when timeBlock === 'evening'.
-const SKY_GRAD = {
-  hot:      { am:['#F59E0B','#FBBF24','#FDE68A'], pm:['#EA580C','#F97316','#FED7AA'], ev:['#7C2D12','#C2410C','#F97316'] },
-  warm:     { am:['#1D4ED8','#3B82F6','#93C5FD'], pm:['#1E40AF','#60A5FA','#BAE6FD'], ev:['#312E81','#6366F1','#A5B4FC'] },
-  mild:     { am:['#0369A1','#0EA5E9','#7DD3FC'], pm:['#0284C7','#38BDF8','#BAE6FD'], ev:['#1E3A5F','#3B82F6','#93C5FD'] },
-  cool:     { am:['#3730A3','#818CF8','#C7D2FE'], pm:['#2E1065','#6D28D9','#A78BFA'], ev:['#1E1B4B','#312E81','#4338CA'] },
-  cold:     { am:['#1E3A5F','#1D4ED8','#60A5FA'], pm:['#1E3A8A','#2563EB','#93C5FD'], ev:['#0A0F2E','#1E3A8A','#1D4ED8'] },
-  freezing: { am:['#0C4A6E','#0369A1','#7DD3FC'], pm:['#0284C7','#38BDF8','#BAE6FD'], ev:['#0A1628','#0C4A6E','#0369A1'] },
-  rain:     { am:['#1C1917','#3D3935','#6B6560'], pm:['#0F172A','#2D3748','#4A5568'], ev:['#030712','#0F172A','#1E293B'] },
-  snow:     { am:['#475569','#64748B','#CBD5E1'], pm:['#334155','#64748B','#CBD5E1'], ev:['#0F172A','#1E293B','#334155'] },
-  formal:   { am:['#0369A1','#0EA5E9','#7DD3FC'], pm:['#0284C7','#38BDF8','#BAE6FD'], ev:['#020617','#050D14','#0D1B2A'] },
-  athletic: { am:['#065F46','#059669','#34D399'], pm:['#047857','#10B981','#6EE7B7'], ev:['#022C22','#065F46','#059669'] },
-};
+// Sky gradient based on actual weathercode + time — not outfit type
+function getSkyGrad(weather, timeBlock) {
+  const code = weather?.weathercode ?? 0;
+  const temp = weather?.temperature ?? 68;
+  const t    = timeBlock === 'morning' ? 'am' : timeBlock === 'evening' ? 'ev' : 'pm';
+
+  // Snow
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) {
+    return { am:['#8896A5','#AABBC8','#D4E4EE'], pm:['#707E8A','#96A8B4','#C0D2DC'], ev:['#1A2535','#2D3F52','#465E6E'] }[t];
+  }
+  // Rain / storms
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95) {
+    return { am:['#3D4A57','#556270','#7C8C98'], pm:['#2A3540','#3D4A57','#57636E'], ev:['#0D1520','#1A2535','#2A3A4A'] }[t];
+  }
+  // Fog / overcast (codes 4–48)
+  if (code >= 4 && code <= 48) {
+    return { am:['#7B8A96','#9BADB8','#C5D4DC'], pm:['#606E7A','#828D97','#AABAC0'], ev:['#1E2835','#2E3C48','#3E5060'] }[t];
+  }
+  // Clear or partly cloudy — tint by temperature
+  if (temp >= 80) {
+    // Hot sunny day: warm golden sky
+    return { am:['#F59E0B','#FBBD24','#FDE58A'], pm:['#F97316','#FB9440','#FED7AA'], ev:['#7C2D12','#C2410C','#F97316'] }[t];
+  }
+  if (code <= 1) {
+    // Clear sky: crisp sky blues
+    return { am:['#0E6EAD','#2E9CD6','#87CEEB'], pm:['#0C60A0','#2882C8','#72B8E0'], ev:['#0D1B4B','#1A3A7A','#4A6FA5'] }[t];
+  }
+  // Partly cloudy: slightly softer blue
+  return   { am:['#1E78B4','#4498C8','#8DC8E4'], pm:['#1868A0','#3880C0','#74AED8'], ev:['#152040','#253860','#405880'] }[t];
+}
 
 const GROUND_COL = {
   hot:'#92400E', warm:'#276B2E', mild:'#1A5C22', cool:'#145218',
@@ -61,7 +78,7 @@ const PATH_COL = {
   formal:'#374151', athletic:'#74C480',
 };
 
-function tk(tb)  { return tb==='morning'?'am':tb==='evening'?'ev':'pm'; }
+
 function locType(loc) {
   const s=(loc||'').toLowerCase();
   if(/beach|miami|hawaii|malibu|san diego|cancun/.test(s))  return 'beach';
@@ -426,8 +443,7 @@ export default function WeatherUniverse({
 
   const outfitType = getOutfitType(weather, eventType);
   const items      = ITEMS[outfitType] || ITEMS.mild;
-  const timeK      = tk(timeBlock);
-  const skyGrad    = (SKY_GRAD[outfitType]||SKY_GRAD.mild)[timeK];
+  const skyGrad    = getSkyGrad(weather, timeBlock);
   const groundCol  = GROUND_COL[outfitType]||'#1A5C22';
   const pathCol    = PATH_COL[outfitType] ||'#52BA65';
   const bg         = locType(location);
@@ -524,12 +540,6 @@ export default function WeatherUniverse({
         {timeBlock!=='fullday'&&<View style={[s.badge,{left:10}]}><Text style={s.badgeTxt}>{timeBlock[0].toUpperCase()+timeBlock.slice(1)}</Text></View>}
       </View>
 
-      {/* Outfit chips */}
-      <View style={s.chips}>
-        <Chip label={items.top[0]}  color={items.top[1]}/>
-        <Chip label={items.bot[0]}  color={items.bot[1]}/>
-        <Chip label={items.shoe[0]} color={items.shoe[1]}/>
-      </View>
     </View>
   );
 }
@@ -537,10 +547,6 @@ export default function WeatherUniverse({
 const s = StyleSheet.create({
   wrap:    { marginBottom: 16 },
   scene:   { height: SCENE_H, borderRadius: 18, overflow: 'hidden', position: 'relative' },
-  chips:   { flexDirection: 'row', gap: 8, marginTop: 10 },
-  chip:    { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, gap: 7 },
-  swatch:  { width: 12, height: 12, borderRadius: 6, flexShrink: 0 },
-  chipTxt: { fontSize: 12, fontWeight: '600', color: '#333', flexShrink: 1 },
   badge:   { position: 'absolute', top: 10, backgroundColor: 'rgba(0,0,0,.28)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   badgeTxt:{ fontSize: 10, color: '#fff', fontWeight: '700' },
 });

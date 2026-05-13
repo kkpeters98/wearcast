@@ -10,6 +10,13 @@ const PACKING_ICONS = {
   jackets: 'cloud-outline', shoes: 'footsteps-outline', accessories: 'glasses-outline',
 };
 
+const OUTFIT_CATS = [
+  { key: 'top',       label: 'Top',        icon: 'shirt-outline'     },
+  { key: 'bottom',    label: 'Bottom',     icon: 'man-outline'       },
+  { key: 'shoe',      label: 'Shoes',      icon: 'footsteps-outline' },
+  { key: 'accessory', label: 'Access.',    icon: 'glasses-outline'   },
+];
+
 export default function SavedScreen({ lang }) {
   const [items, setItems] = useState([]);
 
@@ -52,7 +59,18 @@ export default function SavedScreen({ lang }) {
               <Text style={styles.metaText}>{Math.round(item.weather.temperature)}°F · {item.weather.windspeed} mph</Text>
             </View>
           )}
-          <Text style={styles.outfitText} numberOfLines={4}>{item.outfit}</Text>
+          {item.outfit_items ? (
+            <View style={styles.catRow}>
+              {OUTFIT_CATS.map(cat => (
+                <View key={cat.key} style={styles.catChip}>
+                  <Ionicons name={cat.icon} size={12} color="#6c63ff" style={{ marginRight: 4 }} />
+                  <Text style={styles.catChipText} numberOfLines={1}>{item.outfit_items[cat.key] || '—'}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.outfitText} numberOfLines={4}>{item.outfit}</Text>
+          )}
         </>
       ) : (
         <>
@@ -113,6 +131,9 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
   metaText: { fontSize: 12, color: '#bbb' },
   outfitText: { fontSize: 14, lineHeight: 22, color: '#555', marginTop: 6 },
+  catRow: { marginTop: 8, gap: 6 },
+  catChip: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingHorizontal: 2 },
+  catChipText: { fontSize: 12, color: '#555', flexShrink: 1 },
   packingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 8 },
   packingCell: { alignItems: 'center', gap: 3 },
   packingCount: { fontSize: 12, fontWeight: '700', color: '#ff6b6b' },

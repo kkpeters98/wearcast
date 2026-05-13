@@ -34,23 +34,12 @@ const GENDER_OPTIONS = [
   { key: 'mens',    label: "Men's" },
 ];
 
-function stripMarkdown(text) {
-  if (!text) return '';
-  return text
-    .replace(/^#{1,6}\s*/gm, '')
-    .replace(/\*{1,2}([^*\n]+)\*{1,2}/g, '$1')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/\n{2,}/g, ' ')
-    .trim();
-}
-
-function outfitBullets(text) {
-  const clean = stripMarkdown(text);
-  return clean
-    .split(/\.\s+/)
-    .map(s => s.replace(/\.$/, '').trim())
-    .filter(s => s.length > 8);
-}
+const OUTFIT_CATS = [
+  { key: 'top',       label: 'Top',        icon: 'shirt-outline'      },
+  { key: 'bottom',    label: 'Bottom',     icon: 'man-outline'        },
+  { key: 'shoe',      label: 'Shoes',      icon: 'footsteps-outline'  },
+  { key: 'accessory', label: 'Accessories',icon: 'glasses-outline'    },
+];
 
 const weatherIconName = (code) => {
   if (code == null) return 'cloudy-outline';
@@ -193,7 +182,7 @@ export default function ForecastScreen({ lang, profile }) {
   const save = async () => {
     if (!result) return;
     const block = TIME_BLOCKS.find(b => b.key === timeBlock);
-    await addSaved({ type: 'outfit', location: location.trim(), date: selectedDay, timeBlock: block.label, eventType, weather: result.weather, outfit: result.outfit });
+    await addSaved({ type: 'outfit', location: location.trim(), date: selectedDay, timeBlock: block.label, eventType, weather: result.weather, outfit: result.outfit, outfit_items: result.outfit_items });
     setJustSaved(true);
   };
 
@@ -315,12 +304,50 @@ export default function ForecastScreen({ lang, profile }) {
                 <Ionicons name="shirt-outline" size={16} color={ACCENT} style={{ marginRight: 6 }} />
                 <Text style={styles.outfitTitle}>Your Outfit</Text>
               </View>
-              {outfitBullets(result.outfit).map((line, i) => (
-                <View key={i} style={styles.bullet}>
-                  <View style={styles.bulletDot} />
-                  <Text style={styles.bulletText}>{line}.</Text>
-                </View>
-              ))}
+
+              {result.outfit_items ? (
+                <>
+                  {/* Category grid */}
+                  <View style={styles.catGrid}>
+                    {OUTFIT_CATS.map(cat => (
+                      <View key={cat.key} style={styles.catCard}>
+                        <View style={styles.catIconWrap}>
+                          <Ionicons name={cat.icon} size={20} color={ACCENT} />
+                        </View>
+                        <Text style={styles.catLabel}>{cat.label}</Text>
+                        <Text style={styles.catValue}>{result.outfit_items[cat.key] || '—'}</Text>
+                        {result.outfit_items[cat.key + '_opts'] ? (
+                          <Text style={styles.catOpts}>e.g. {result.outfit_items[cat.key + '_opts']}</Text>
+                        ) : null}
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Insight rows */}
+                  <View style={styles.insightStack}>
+                    {[
+                      { icon: 'bulb-outline',       color: '#F59E0B', label: 'Why',      text: result.outfit_items.why },
+                      { icon: 'close-circle-outline',color: '#EF4444', label: 'Avoid',   text: result.outfit_items.avoid },
+                      result.outfit_items.layering
+                        ? { icon: 'layers-outline',  color: '#6366F1', label: 'Layering',text: result.outfit_items.layering }
+                        : null,
+                      { icon: 'color-palette-outline',color: '#10B981',label: 'Style',  text: result.outfit_items.style },
+                    ].filter(Boolean).map(row => (
+                      <View key={row.label} style={styles.insightRow}>
+                        <View style={[styles.insightIcon, { backgroundColor: row.color + '18' }]}>
+                          <Ionicons name={row.icon} size={15} color={row.color} />
+                        </View>
+                        <View style={styles.insightBody}>
+                          <Text style={[styles.insightLabel, { color: row.color }]}>{row.label}</Text>
+                          <Text style={styles.insightText}>{row.text}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              ) : (
+                <Text style={styles.outfitText}>{result.outfit}</Text>
+              )}
             </View>
 
             <TouchableOpacity style={[styles.saveBtn, justSaved && styles.saveBtnDone]} onPress={save} disabled={justSaved}>
@@ -391,11 +418,37 @@ const styles = StyleSheet.create({
 
   mascotRow: { alignItems: 'center', marginBottom: 16, marginTop: 4 },
   outfitSection: { marginTop: 4 },
-  outfitHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  outfitHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   outfitTitle: { fontSize: 13, fontWeight: '700', color: ACCENT, textTransform: 'uppercase', letterSpacing: 0.6 },
-  bullet: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
-  bulletDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: ACCENT, marginTop: 7, marginRight: 10, flexShrink: 0 },
-  bulletText: { flex: 1, fontSize: 14, lineHeight: 22, color: '#333' },
+  outfitText: { fontSize: 14, lineHeight: 22, color: '#333' },
+  catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  catCard: {
+    width: '47%',
+    backgroundColor: '#f8f7ff',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e8e4ff',
+  },
+  catIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#ede9ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  catLabel: { fontSize: 10, fontWeight: '700', color: ACCENT, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3 },
+  catValue: { fontSize: 13, fontWeight: '600', color: '#222', lineHeight: 18 },
+  catOpts:  { fontSize: 11, color: '#888', lineHeight: 16, marginTop: 4 },
+
+  insightStack: { marginTop: 12, gap: 8 },
+  insightRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  insightIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 },
+  insightBody: { flex: 1 },
+  insightLabel: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 2 },
+  insightText: { fontSize: 13, color: '#444', lineHeight: 19 },
 
   saveBtn: { marginTop: 16, backgroundColor: '#f0eeff', borderRadius: 10, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   saveBtnDone: { backgroundColor: '#e8f5e9' },

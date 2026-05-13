@@ -9,7 +9,7 @@ import requests
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 
-from outfit_engine import outfit_from_rules, detailed_packing
+from outfit_engine import outfit_from_rules, detailed_packing, structured_outfit
 from storage import log_recommendation
 
 
@@ -301,7 +301,8 @@ def recommend():
 
     threading.Thread(target=_safe_log, daemon=True).start()
 
-    return jsonify({"weather": weather, "hourly": hours, "outfit": outfit, "source": source})
+    outfit_items = structured_outfit(weather, runs_cold, event_type, gender)
+    return jsonify({"weather": weather, "hourly": hours, "outfit": outfit, "outfit_items": outfit_items, "source": source})
 
 
 @app.route("/trip", methods=["POST"])
