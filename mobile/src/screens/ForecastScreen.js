@@ -34,6 +34,24 @@ const GENDER_OPTIONS = [
   { key: 'mens',    label: "Men's" },
 ];
 
+function stripMarkdown(text) {
+  if (!text) return '';
+  return text
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/\*{1,2}([^*\n]+)\*{1,2}/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\n{2,}/g, ' ')
+    .trim();
+}
+
+function outfitBullets(text) {
+  const clean = stripMarkdown(text);
+  return clean
+    .split(/\.\s+/)
+    .map(s => s.replace(/\.$/, '').trim())
+    .filter(s => s.length > 8);
+}
+
 const weatherIconName = (code) => {
   if (code == null) return 'cloudy-outline';
   const c = parseInt(code);
@@ -287,8 +305,19 @@ export default function ForecastScreen({ lang, profile }) {
               <PixelMascot animal={profile?.mascot || 'dog'} weather={result.weather} eventType={eventType} pixelSize={7} />
             </View>
 
-            {/* Outfit text */}
-            <Text style={styles.outfitText}>{result.outfit}</Text>
+            {/* Outfit recommendation */}
+            <View style={styles.outfitSection}>
+              <View style={styles.outfitHeader}>
+                <Ionicons name="shirt-outline" size={16} color={ACCENT} style={{ marginRight: 6 }} />
+                <Text style={styles.outfitTitle}>Your Outfit</Text>
+              </View>
+              {outfitBullets(result.outfit).map((line, i) => (
+                <View key={i} style={styles.bullet}>
+                  <View style={styles.bulletDot} />
+                  <Text style={styles.bulletText}>{line}.</Text>
+                </View>
+              ))}
+            </View>
 
             <TouchableOpacity style={[styles.saveBtn, justSaved && styles.saveBtnDone]} onPress={save} disabled={justSaved}>
               <Ionicons name={justSaved ? 'checkmark' : 'bookmark-outline'} size={16} color={justSaved ? '#43a047' : ACCENT} style={{ marginRight: 6 }} />
@@ -357,7 +386,12 @@ const styles = StyleSheet.create({
   tlPrecip: { fontSize: 10, color: '#6c63ff', marginTop: 1 },
 
   mascotRow: { alignItems: 'center', marginBottom: 16, marginTop: 4 },
-  outfitText: { fontSize: 15, lineHeight: 24, color: '#333' },
+  outfitSection: { marginTop: 4 },
+  outfitHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  outfitTitle: { fontSize: 13, fontWeight: '700', color: ACCENT, textTransform: 'uppercase', letterSpacing: 0.6 },
+  bullet: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
+  bulletDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: ACCENT, marginTop: 7, marginRight: 10, flexShrink: 0 },
+  bulletText: { flex: 1, fontSize: 14, lineHeight: 22, color: '#333' },
 
   saveBtn: { marginTop: 16, backgroundColor: '#f0eeff', borderRadius: 10, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   saveBtnDone: { backgroundColor: '#e8f5e9' },
