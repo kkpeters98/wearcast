@@ -10,7 +10,7 @@ import OutfitBoard from '../components/OutfitBoard';
 import { fetchOutfit } from '../api';
 
 // ← swap 'scene' → 'board' to preview the flat outfit board style
-const OUTFIT_VIEW = 'scene';
+const OUTFIT_VIEW = 'board';
 import { addSaved } from '../storage';
 import { t } from '../i18n';
 
