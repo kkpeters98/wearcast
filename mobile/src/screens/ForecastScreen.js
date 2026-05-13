@@ -5,8 +5,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import LocationInput from '../components/LocationInput';
-import PixelMascot from '../components/PixelMascot';
+import OutfitScene from '../components/OutfitScene';
+import OutfitBoard from '../components/OutfitBoard';
 import { fetchOutfit } from '../api';
+
+// ← swap 'scene' → 'board' to preview the flat outfit board style
+const OUTFIT_VIEW = 'scene';
 import { addSaved } from '../storage';
 import { t } from '../i18n';
 
@@ -300,10 +304,11 @@ export default function ForecastScreen({ lang, profile }) {
               </ScrollView>
             )}
 
-            {/* Mascot */}
-            <View style={styles.mascotRow}>
-              <PixelMascot animal={profile?.mascot || 'dog'} weather={result.weather} eventType={eventType} pixelSize={5} />
-            </View>
+            {/* Outfit visual */}
+            {OUTFIT_VIEW === 'scene'
+              ? <OutfitScene weather={result.weather} eventType={eventType} />
+              : <OutfitBoard weather={result.weather} eventType={eventType} />
+            }
 
             {/* Outfit recommendation */}
             <View style={styles.outfitSection}>
