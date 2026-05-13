@@ -5,12 +5,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import LocationInput from '../components/LocationInput';
-import OutfitScene from '../components/OutfitScene';
-import OutfitBoard from '../components/OutfitBoard';
+import WeatherUniverse from '../components/WeatherUniverse';
 import { fetchOutfit } from '../api';
-
-// ← swap 'scene' → 'board' to preview the flat outfit board style
-const OUTFIT_VIEW = 'board';
 import { addSaved } from '../storage';
 import { t } from '../i18n';
 
@@ -304,11 +300,14 @@ export default function ForecastScreen({ lang, profile }) {
               </ScrollView>
             )}
 
-            {/* Outfit visual */}
-            {OUTFIT_VIEW === 'scene'
-              ? <OutfitScene weather={result.weather} eventType={eventType} />
-              : <OutfitBoard weather={result.weather} eventType={eventType} />
-            }
+            {/* Animated weather universe */}
+            <WeatherUniverse
+              weather={result.weather}
+              eventType={eventType}
+              gender={gender}
+              timeBlock={timeBlock}
+              location={location.trim()}
+            />
 
             {/* Outfit recommendation */}
             <View style={styles.outfitSection}>
